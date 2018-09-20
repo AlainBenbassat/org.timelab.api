@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<extension key="org.timelab.api" type="module">
+  <file>api</file>
+  <name>Timelab API</name>
+  <description>API to query the timelab database</description>
+  <license>AGPL-3.0</license>
+  <maintainer>
+    <author>Alain Benbassat</author>
+    <email>alain@businessandcode.eu</email>
+  </maintainer>
+  <urls>
+    <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
+  </urls>
+  <releaseDate>2018-09-20</releaseDate>
+  <version>1.0</version>
+  <develStage>stable</develStage>
+  <compatibility>
+    <ver>4.7</ver>
+    <ver>5.x</ver>
+  </compatibility>
+  <comments></comments>
+  <civix>
+    <namespace>CRM/Api</namespace>
+  </civix>
+</extension>
