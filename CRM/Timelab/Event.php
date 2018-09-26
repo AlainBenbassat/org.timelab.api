@@ -12,23 +12,14 @@ class CRM_Timelab_Event {
   }
 
   public function getEventList($fromDate, $toDate) {
-    $sql = "
-      SELECT
-        id
-        , title
-        , start_date
-        , end_date
-      FROM
-        civicrm_event
-      WHERE
-        start_date between %1 and %2
-    ";
-    $sqlParams = [
-      1 => [$fromDate . ' 00:00:00', 'String'],
-      2 => [$toDate . ' 23:59:59', 'String'],
+    $params = [
+      'sequential' => 1,
+      'start_date' => ['BETWEEN' => [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']],
+      'options' => ['sort' => 'start_date ASC'],
+      'return' => ['id', 'title', 'start_date', 'end_date', 'custom_25']
     ];
 
-    $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
-    return $dao->fetchAll();
+    $e = civicrm_api3('Event', 'get', $params);
+    return $e;
   }
 }
