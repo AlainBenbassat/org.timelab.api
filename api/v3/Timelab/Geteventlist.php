@@ -18,7 +18,7 @@ function civicrm_api3_timelab_Geteventlist($params) {
       $toDate = $params['to_date'];
     }
     else {
-      $toDate = '2999-21-31';
+      $toDate = '2999-12-31';
     }
 
     $eventHelper = new CRM_Timelab_Event();

@@ -24,7 +24,7 @@ class CRM_Timelab_Event {
         start_date between %1 and %2
     ";
     $sqlParams = [
-      1 => [$fromDate . '00:00:00', 'String'],
+      1 => [$fromDate . ' 00:00:00', 'String'],
       2 => [$toDate . ' 23:59:59', 'String'],
     ];
 
