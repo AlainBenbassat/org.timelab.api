@@ -136,7 +136,7 @@ class CRM_Timelab_Event {
     ];
 
     $participants = [];
-throw new Exception($sql);
+
     $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
     while ($dao->fetch()) {
       $participant = [];
