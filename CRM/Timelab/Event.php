@@ -93,7 +93,7 @@ class CRM_Timelab_Event {
           $event['event_prices'][$dao->price_field_label] = [];
         }
 
-        $event['event_prices'][$dao->price_field_label][$dao->price_field_label] = $dao->amount;
+        $event['event_prices'][$dao->price_field_label][$dao->price_value_label] = $dao->amount;
       }
     }
 
