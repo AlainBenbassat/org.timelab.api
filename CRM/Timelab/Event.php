@@ -126,7 +126,7 @@ class CRM_Timelab_Event {
       and
         e.is_public = 1
       and 
-        e.start_date between (%1 and %2)
+        e.start_date between %1 and %2
       order by 
         e.start_date 
     ";
