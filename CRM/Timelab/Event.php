@@ -17,7 +17,7 @@ class CRM_Timelab_Event {
         , e.summary
         , e.description
         , e.event_type_id
-        , ov.name as event_type
+        , ov.label as event_type
         , concat(%2, 'civicrm/file?reset=1&filename=', f.uri, '&mime-type=', f.mime_type) as image
         , e.is_monetary
       from
@@ -98,6 +98,59 @@ class CRM_Timelab_Event {
     }
 
     return $event;
+  }
+
+  public function getEventParticipants($id) {
+    $sql = "
+      select
+        c.display_name
+        , c.first_name
+        , c.last_name
+        , c.organization
+        , ov.label role
+      from
+        civicrm_event e
+      inner join
+        civicrm_participant p on e.id = p.event_id          
+      inner join 
+        civicrm_contact c on c.id = p.contact_id
+      inner join 
+        civicrm_participant_status_type st on st.id = p.status_id
+      inner join
+        civicrm_option_value ov on ov.value = p.role_id
+      inner join 
+        civicrm_option_group og on ov.option_group_id = og.id and og.name = 'participant_role'      
+      where 
+        e.id = %1
+      and
+        e.is_active = 1
+      and
+        e.is_public = 1
+      and 
+        st.is_counted = 1
+      order by 
+        c.sort_name
+    ";
+    $sqlParams = [
+      1 => [$id, 'Integer'],
+    ];
+
+    $participants = [];
+
+    $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+    while ($dao->fetch()) {
+      $participant = [];
+
+      $participant['display_name'] = $dao->display_name;
+      $participant['first_name'] = $dao->first_name;
+      $participant['last_name'] = $dao->last_name;
+      $participant['organization'] = $dao->organization;
+      $participant['role'] = $dao->role;
+
+      $participants[] = $participant;
+    }
+
+    return $participants;
   }
 
   public function getEventList($fromDate, $toDate) {
