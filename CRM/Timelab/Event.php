@@ -106,7 +106,7 @@ class CRM_Timelab_Event {
         c.display_name
         , c.first_name
         , c.last_name
-        , c.organization
+        , c.organization_name
         , ov.label role
       from
         civicrm_event e
@@ -136,7 +136,7 @@ class CRM_Timelab_Event {
     ];
 
     $participants = [];
-
+throw new Exception($sql);
     $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
     while ($dao->fetch()) {
       $participant = [];
