@@ -14,11 +14,12 @@ class CRM_Timelab_Event {
         , e.title
         , e.start_date
         , e.end_date
+        , e.is_monetary
         , e.summary
         , e.description
         , e.event_type_id
         , ov.label as event_type
-        , concat(%2, 'civicrm/file?reset=1&filename=', f.uri, '&mime-type=', f.mime_type) as image
+        , concat(%2, 'sites/all/files/civicrm/custom/', f.uri) as image
         , e.is_monetary
       from
         civicrm_event e
@@ -46,6 +47,7 @@ class CRM_Timelab_Event {
       $event['title'] = $dao->title;
       $event['start_date'] = $dao->start_date;
       $event['end_date'] = $dao->end_date;
+      $event['is_monetary'] = $dao->is_monetary;
       $event['summary'] = $dao->summary;
       $event['description'] = $dao->description;
       $event['event_type'] = [
@@ -103,11 +105,9 @@ class CRM_Timelab_Event {
   public function getEventParticipants($id) {
     $sql = "
       select
-        c.display_name
-        , c.first_name
-        , c.last_name
-        , c.organization_name
-        , ov.label role
+        c.id,
+        c.display_name,
+        c.image_URL as image
       from
         civicrm_event e
       inner join
@@ -116,10 +116,6 @@ class CRM_Timelab_Event {
         civicrm_contact c on c.id = p.contact_id
       inner join 
         civicrm_participant_status_type st on st.id = p.status_id
-      inner join
-        civicrm_option_value ov on ov.value = p.role_id
-      inner join 
-        civicrm_option_group og on ov.option_group_id = og.id and og.name = 'participant_role'      
       where 
         e.id = %1
       and
@@ -140,12 +136,9 @@ class CRM_Timelab_Event {
     $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
     while ($dao->fetch()) {
       $participant = [];
-
+      $participant['id'] = $dao->id;
+      $participant['image'] = $dao->image;
       $participant['display_name'] = $dao->display_name;
-      $participant['first_name'] = $dao->first_name;
-      $participant['last_name'] = $dao->last_name;
-      $participant['organization'] = $dao->organization;
-      $participant['role'] = $dao->role;
 
       $participants[] = $participant;
     }
@@ -153,7 +146,12 @@ class CRM_Timelab_Event {
     return $participants;
   }
 
-  public function getEventList($fromDate, $toDate) {
+  public function getEventList($fromDate, $toDate, $limit = null, $exceptTypes = []) {
+    $exceptTypeString = '(' ;
+    foreach($exceptTypes as $e){
+      $exceptTypeString .= "'".addslashes($e)."',";
+    }
+    $exceptTypeString[-1] = ')';
     $sql = "
       select
         e.id
@@ -162,8 +160,9 @@ class CRM_Timelab_Event {
         , e.end_date
         , e.summary
         , e.event_type_id
-        , ov.name as event_type
-        , concat(%3, 'civicrm/file?reset=1&filename=', f.uri, '&mime-type=', f.mime_type) as image
+        , e.is_monetary
+        , ov.label as event_type
+        , concat(%3, 'sites/all/files/civicrm/custom/', f.uri) as image
       from
         civicrm_event e
       inner join
@@ -179,14 +178,19 @@ class CRM_Timelab_Event {
       and
         e.is_public = 1
       and 
-        e.start_date between %1 and %2
-      order by 
-        e.start_date 
+        e.start_date between %1 and %2 ".
+      (count($exceptTypes) ? "and ov.label NOT IN $exceptTypeString" : "")."
+      order by
+        e.start_date
     ";
+    if($limit){
+      $sql .= " limit $limit";
+    }
+
     $sqlParams = [
       1 => [$fromDate . ' 00:00:00', 'String'],
       2 => [$toDate . ' 23:59:59', 'String'],
-      3 => [$this->timelabURL, 'String'],
+      3 => [$this->timelabURL, 'String']
     ];
 
     $events = [];
@@ -199,8 +203,8 @@ class CRM_Timelab_Event {
       $event['title'] = $dao->title;
       $event['start_date'] = $dao->start_date;
       $event['end_date'] = $dao->end_date;
+      $event['is_monetary'] = $dao->is_monetary;
       $event['summary'] = $dao->summary;
-      $event['description'] = $dao->description;
       $event['event_type'] = [
         'id' => $dao->event_type_id,
         'name' => $dao->event_type,
@@ -212,4 +216,6 @@ class CRM_Timelab_Event {
 
     return $events;
   }
+
+
 }

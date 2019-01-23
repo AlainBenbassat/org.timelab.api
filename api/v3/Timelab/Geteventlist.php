@@ -21,8 +21,24 @@ function civicrm_api3_timelab_Geteventlist($params) {
       $toDate = '2999-12-31';
     }
 
+    // check if to date was specified
+    if (array_key_exists('except_types', $params)) {
+      $exceptTypes = $params['except_types'];
+    }
+    else {
+      $exceptTypes = [];
+    }
+
+    // check if to date was specified
+    if (array_key_exists('limit', $params)) {
+      $limit = intval($params['limit']);
+    }
+    else {
+      $limit = null;
+    }
+
     $eventHelper = new CRM_Timelab_Event();
-    $events = $eventHelper->getEventList($fromDate, $toDate);
+    $events = $eventHelper->getEventList($fromDate, $toDate, $limit, $exceptTypes);
 
     return civicrm_api3_create_success($events, $params, 'Timelab', 'getEventList');
   }
