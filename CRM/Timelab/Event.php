@@ -21,6 +21,7 @@ class CRM_Timelab_Event {
         , ov.label as event_type
         , concat(%2, 'sites/all/files/civicrm/custom/', f.uri) as image
         , e.is_monetary
+        , e.is_online_registration
       from
         civicrm_event e
       inner join
@@ -48,6 +49,7 @@ class CRM_Timelab_Event {
       $event['start_date'] = $dao->start_date;
       $event['end_date'] = $dao->end_date;
       $event['is_monetary'] = $dao->is_monetary;
+      $event['is_online_registration'] = $dao->is_online_registration;
       $event['summary'] = $dao->summary;
       $event['description'] = $dao->description;
       $event['event_type'] = [
@@ -96,6 +98,29 @@ class CRM_Timelab_Event {
         }
 
         $event['event_prices'][$dao->price_field_label][$dao->price_value_label] = $dao->amount;
+      }
+    }
+
+    // add registration profiles
+    if ($event['is_online_registration']) {
+      $sql = "
+        SELECT g.* FROM civicrm_uf_group AS g
+        LEFT JOIN civicrm_uf_join AS j ON j.uf_group_id = g.id
+        WHERE j.entity_id = {$event['id']}
+        AND j.entity_table = 'civicrm_event'
+        ORDER BY j.weight
+      ";
+      $dao = CRM_Core_DAO::executeQuery($sql);
+      $event['ufgroups'] = $dao->fetchAll();
+      foreach($event['ufgroups'] as &$g){
+        $g['fields'] = [];
+        $sql = "
+          SELECT * FROM civicrm_uf_field
+          WHERE uf_group_id = {$g['id']}
+          ORDER BY weight
+        ";
+        $dao = CRM_Core_DAO::executeQuery($sql);
+        $g['fields'] = $dao->fetchAll();
       }
     }
 
