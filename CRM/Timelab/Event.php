@@ -108,6 +108,7 @@ class CRM_Timelab_Event {
         LEFT JOIN civicrm_uf_join AS j ON j.uf_group_id = g.id
         WHERE j.entity_id = {$event['id']}
         AND j.entity_table = 'civicrm_event'
+        AND g.is_active = 1
         ORDER BY j.weight
       ";
       $dao = CRM_Core_DAO::executeQuery($sql);
@@ -117,6 +118,7 @@ class CRM_Timelab_Event {
         $sql = "
           SELECT * FROM civicrm_uf_field
           WHERE uf_group_id = {$g['id']}
+          AND is_active = 1
           ORDER BY weight
         ";
         $dao = CRM_Core_DAO::executeQuery($sql);
