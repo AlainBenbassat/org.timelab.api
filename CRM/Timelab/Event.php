@@ -134,15 +134,18 @@ class CRM_Timelab_Event {
       select
         c.id,
         c.display_name,
-        c.image_URL as image
+        c.image_URL as image,
+        cov.label as role
       from
         civicrm_event e
-      inner join
+      inner join 
         civicrm_participant p on e.id = p.event_id          
       inner join 
         civicrm_contact c on c.id = p.contact_id
       inner join 
         civicrm_participant_status_type st on st.id = p.status_id
+      inner join
+        civicrm_option_value cov on cov.value = p.role_id
       where 
         e.id = %1
       and
@@ -151,7 +154,10 @@ class CRM_Timelab_Event {
         e.is_public = 1
       and 
         st.is_counted = 1
-      order by 
+      and
+        cov.option_group_id=13
+      order by
+        role,
         c.sort_name
     ";
     $sqlParams = [
