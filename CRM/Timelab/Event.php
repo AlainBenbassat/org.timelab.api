@@ -168,12 +168,7 @@ class CRM_Timelab_Event {
 
     $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
     while ($dao->fetch()) {
-      $participant = [];
-      $participant['id'] = $dao->id;
-      $participant['image'] = $dao->image;
-      $participant['display_name'] = $dao->display_name;
-
-      $participants[] = $participant;
+      $participants[] = $dao->toArray();
     }
 
     return $participants;
