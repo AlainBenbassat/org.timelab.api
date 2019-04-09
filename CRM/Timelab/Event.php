@@ -22,6 +22,8 @@ class CRM_Timelab_Event {
         , concat(%2, 'sites/all/files/civicrm/custom/', f.uri) as image
         , e.is_monetary
         , e.is_online_registration
+        , i.stroom_43 as stroom
+        , i.project_45 as project
       from
         civicrm_event e
       inner join
@@ -40,23 +42,13 @@ class CRM_Timelab_Event {
       2 => [$this->timelabURL, 'String'],
     ];
 
-    $event = [];
-
     $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
     if ($dao->fetch()) {
-      $event['id'] = $dao->id;
-      $event['title'] = $dao->title;
-      $event['start_date'] = $dao->start_date;
-      $event['end_date'] = $dao->end_date;
-      $event['is_monetary'] = $dao->is_monetary;
-      $event['is_online_registration'] = $dao->is_online_registration;
-      $event['summary'] = $dao->summary;
-      $event['description'] = $dao->description;
+      $event = $dao->toArray();
       $event['event_type'] = [
         'id' => $dao->event_type_id,
         'name' => $dao->event_type,
       ];
-      $event['image'] = $dao->image;
     }
 
     // add the price
@@ -174,12 +166,16 @@ class CRM_Timelab_Event {
     return $participants;
   }
 
-  public function getEventList($fromDate, $toDate, $limit = null, $exceptTypes = []) {
+  public function getEventList($fromDate, $toDate, $limit = null, $exceptTypes = [], $stromen = []) {
     $exceptTypeString = '(' ;
     foreach($exceptTypes as $e){
       $exceptTypeString .= "'".addslashes($e)."',";
     }
     $exceptTypeString[-1] = ')';
+    foreach($stromen as $i => $s){
+        $stromen[$i] = "'".addslashes($s)."'";
+    }
+    $stromenString = '('.implode(',', $stromen).')';
     $sql = "
       select
         e.id
@@ -191,6 +187,7 @@ class CRM_Timelab_Event {
         , e.is_monetary
         , ov.label as event_type
         , concat(%3, 'sites/all/files/civicrm/custom/', f.uri) as image
+        , i.stroom_43 as stroom
       from
         civicrm_event e
       inner join
@@ -207,7 +204,8 @@ class CRM_Timelab_Event {
         e.is_public = 1
       and 
         e.start_date between %1 and %2 ".
-      (count($exceptTypes) ? "and ov.label NOT IN $exceptTypeString" : "")."
+      (count($exceptTypes) ? "and ov.label NOT IN $exceptTypeString" : "").
+      (count($stromen) ? " and i.stroom_43 IN $stromenString" : "")."
       order by
         e.start_date
     ";
@@ -225,20 +223,11 @@ class CRM_Timelab_Event {
 
     $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
     while ($dao->fetch()) {
-      $event = [];
-
-      $event['id'] = $dao->id;
-      $event['title'] = $dao->title;
-      $event['start_date'] = $dao->start_date;
-      $event['end_date'] = $dao->end_date;
-      $event['is_monetary'] = $dao->is_monetary;
-      $event['summary'] = $dao->summary;
+      $event = $dao->toArray();
       $event['event_type'] = [
         'id' => $dao->event_type_id,
         'name' => $dao->event_type,
       ];
-      $event['image'] = $dao->image;
-
       $events[] = $event;
     }
 
