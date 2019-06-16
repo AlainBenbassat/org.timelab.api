@@ -189,19 +189,7 @@ class CRM_Timelab_Event {
         , concat(%3, 'sites/all/files/civicrm/custom/', f.uri) as image
         , i.stroom_43 as stroom
       from
-        civicrm_event e
-      inner join
-        civicrm_option_value ov on ov.value = e.event_type_id
-      inner join 
-        civicrm_option_group og on ov.option_group_id = og.id and og.name = 'event_type'
-      left outer join 
-        civicrm_value_img_9 i on i.entity_id = e.id
-      left outer join 
-        civicrm_file f on i.featured_image_25 = f.id
-      where 
-        e.is_active = 1
-      and
-        e.is_public = 1
+        civicrm_event e/
       and 
         e.start_date between %1 and %2 ".
       (count($exceptTypes) ? "and ov.label NOT IN $exceptTypeString" : "").
