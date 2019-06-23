@@ -5,6 +5,16 @@ function _civicrm_api3_timelab_Getpeople_spec(&$spec) {
 
 function civicrm_api3_timelab_Getpeople($params) {
     try {
+        $sqlParams = [];
+        $filterProjects = "";
+        if (array_key_exists('project', $params)) {
+            $filterProjects = 'and r.contact_id_b = '.intval($params['project']);
+        }
+        $filterRelationshipType = "";
+        if (array_key_exists('relationship_type', $params)) {
+            $filterRelationshipType = 'and r.relationship_type_id = '.intval($params['relationship_type']);
+        }
+
         $sql = "
           select
             c.id,
@@ -17,12 +27,13 @@ function civicrm_api3_timelab_Getpeople($params) {
           where
             is_deleted = 0
             and (r.end_date IS NULL or r.end_date > NOW())
+            $filterProjects
+            $filterRelationshipType
           group by
             r.contact_id_a
           order by
             sort_name
         ";
-        $sqlParams = [];
 
         $people = [];
 
