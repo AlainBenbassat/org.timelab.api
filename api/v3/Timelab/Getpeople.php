@@ -19,9 +19,12 @@ function civicrm_api3_timelab_Getpeople($params) {
           select
             c.id,
             c.display_name,
-            c.image_URL as image
+            c.image_URL as image,
+            p.bio_15 as bio
           from
             civicrm_contact as c
+          left join
+            civicrm_value_public_5 as p on c.id = p.entity_id
           inner join
             civicrm_relationship as r on r.contact_id_a = c.id " .
           ($filterProjects ? "" : ("inner join civicrm_contact as cb on r.contact_id_b = cb.id")) . "
