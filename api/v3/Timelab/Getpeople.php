@@ -23,14 +23,12 @@ function civicrm_api3_timelab_Getpeople($params) {
           from
             civicrm_contact as c
           inner join
-            civicrm_relationship as r on r.contact_id_a = c.id
-          inner join
-            civicrm_contact as cb on r.contact_id_b = cb.id
+            civicrm_relationship as r on r.contact_id_a = c.id " .
+          ($filterProjects ? "" : ("inner join civicrm_contact as cb on r.contact_id_b = cb.id")) . "
           where
-            c.is_deleted = 0 and cb.is_deleted = 0
-            and (r.end_date IS NULL or r.end_date > NOW())
-            and cb.contact_type = 'Organization'
-            and cb.contact_sub_type = 'Project'
+            c.is_deleted = 0
+            and (r.end_date IS NULL or r.end_date > NOW()) " .
+          ($filterProjects ? "" : ("and cb.is_deleted = 0 and cb.contact_type = 'Organization' and cb.contact_sub_type = 'Project'")) . "
             $filterProjects
             $filterRelationshipType
           group by
