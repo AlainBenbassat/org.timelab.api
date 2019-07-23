@@ -109,7 +109,9 @@ function civicrm_api3_timelab_Getproject($params) {
           and
             e.is_public = 1
           and 
-            i.project_45 = %1";
+            i.project_45 = %1
+          order by
+            e.start_date DESC";
         $sqlParams = [
             1 => [$project[0]['id'], 'Integer'],
             2 => [CRM_Utils_System::baseURL(), 'String']
