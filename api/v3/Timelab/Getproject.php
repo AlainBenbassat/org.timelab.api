@@ -129,6 +129,25 @@ function civicrm_api3_timelab_Getproject($params) {
         }
         $project[0]['events'] = $events;
 
+        // get documents
+        $sql = "
+          select
+            * 
+          from
+            civicrm_value_projectdocume_28
+          where 
+            entity_id = %1";
+        $sqlParams = [
+            1 => [$project[0]['id'], 'Integer'],
+        ];
+
+        $docs = [];
+        $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+        while ($dao->fetch()) {
+            $docs[] = $dao->toArray();
+        }
+        $project[0]['docs'] = $docs;
+
         return civicrm_api3_create_success($project, $params, 'Timelab', 'Getproject');
     }
     catch (Exception $e) {
