@@ -132,11 +132,15 @@ function civicrm_api3_timelab_Getproject($params) {
         // get documents
         $sql = "
           select
-            * 
+            pd.korte_omschrijving_document_48 as description,
+            f.uri as document,
+            f.mime_type as mime_type
           from
-            civicrm_value_projectdocume_28
+            civicrm_value_projectdocume_28 as pd
+          left join
+            civicrm_file as f on f.id = pd.document_49
           where 
-            entity_id = %1";
+            pd.entity_id = %1";
         $sqlParams = [
             1 => [$project[0]['id'], 'Integer'],
         ];

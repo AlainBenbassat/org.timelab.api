@@ -19,8 +19,8 @@ function civicrm_api3_timelab_Getpeople($params) {
         }
 
         if($params['project'] == 2402) { // timelab
-            $extrafields .= ', e.email as email, tel.phone as phone';
-            $extrajoins .= ' left join civicrm_phone as tel on tel.contact_id = c.id, left join civicrm_email as e on e.contact_id = c.id';
+            $extrafields .= ', GROUP_CONCAT(DISTINCT(e.email)) as email, GROUP_CONCAT(DISTINCT(tel.phone)) as phone';
+            $extrajoins .= ' left join civicrm_phone as tel on tel.contact_id = c.id left join civicrm_email as e on e.contact_id = c.id';
         }
 
         $sql = "
