@@ -185,6 +185,7 @@ class CRM_Timelab_Event {
         , e.summary
         , e.event_type_id
         , e.is_monetary
+        , e.is_online_registration
         , ov.label as event_type
         , concat(%3, 'sites/all/files/civicrm/custom/', f.uri) as image
         , i.stroom_43 as stroom
