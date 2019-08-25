@@ -25,7 +25,14 @@ function civicrm_api3_timelab_Getpeople($params) {
         }
         $filterRelationshipType = "";
         if (array_key_exists('relationship_type', $params)) {
-            $filterRelationshipType = 'and r.relationship_type_id = '.intval($params['relationship_type']);
+          if(!array_key_exists('IN', $params['relationship_type'])) {
+            $filterRelationshipType = 'and r.relationship_type_id = ' . intval($params['relationship_type']);
+          }
+          else{
+            $sqlParams[1] = [implode(',', $params['relationship_type']['IN']), 'CommaSeparatedIntegers'];
+            $filterRelationshipType = 'and r.relationship_type_id IN (%1) ';
+          }
+          $extrafields .= ', GROUP_CONCAT(DISTINCT(r.relationship_type_id)) AS relationship_type';
         }
 
         $sql = "
