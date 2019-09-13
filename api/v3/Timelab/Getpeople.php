@@ -11,14 +11,15 @@ function civicrm_api3_timelab_Getpeople($params) {
         $filterProjects = "";
         if (array_key_exists('project', $params) || !array_key_exists('relationship_type', $params)) {
             if (array_key_exists('project', $params)) {
-              $filterProjects .= 'and r.contact_id_b = ' . intval($params['project']);
+              $filterProjects .= ' and r.contact_id_b = ' . intval($params['project']);
             }
             if($params['project'] == 2402) { // timelab
                 $extrafields .= ', GROUP_CONCAT(DISTINCT(e.email)) as email, GROUP_CONCAT(DISTINCT(tel.phone)) as phone';
                 $extrajoins .= ' left join civicrm_phone as tel on tel.contact_id = c.id left join civicrm_email as e on e.contact_id = c.id';
+                $filterProjects .= ' and e.email IS NULL or e.email LIKE "%@timelab.org" ';
             }
             else {
-                $filterProjects .= 'and cb.is_deleted = 0 and cb.contact_type = \'Organization\' ' .
+                $filterProjects .= ' and cb.is_deleted = 0 and cb.contact_type = \'Organization\' ' .
                                   'and cb.contact_sub_type = \'Project\' ';
                 $extrajoins .= '';
             }
@@ -26,11 +27,11 @@ function civicrm_api3_timelab_Getpeople($params) {
         $filterRelationshipType = "";
         if (array_key_exists('relationship_type', $params)) {
           if(!array_key_exists('IN', $params['relationship_type'])) {
-            $filterRelationshipType = 'and r.relationship_type_id = ' . intval($params['relationship_type']);
+            $filterRelationshipType = ' and r.relationship_type_id = ' . intval($params['relationship_type']);
           }
           else{
             $sqlParams[1] = [implode(',', $params['relationship_type']['IN']), 'CommaSeparatedIntegers'];
-            $filterRelationshipType = 'and r.relationship_type_id IN (%1) ';
+            $filterRelationshipType = ' and r.relationship_type_id IN (%1) ';
           }
           $extrafields .= ', GROUP_CONCAT(DISTINCT(r.relationship_type_id)) AS relationship_type';
         }
