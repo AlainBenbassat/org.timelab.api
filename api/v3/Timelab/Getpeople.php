@@ -76,4 +76,3 @@ function civicrm_api3_timelab_Getpeople($params) {
         throw new API_Exception($e->getMessage(), $e->getCode());
     }
 }
-
