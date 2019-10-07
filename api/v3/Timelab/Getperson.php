@@ -16,7 +16,8 @@ function civicrm_api3_timelab_Getperson($params) {
             c.id,
             c.display_name,
             c.image_URL as image,
-            p.bio_15 as bio
+            p.bio_15 as bio,
+            c.contact_type
           from
             civicrm_contact as c
           left join
