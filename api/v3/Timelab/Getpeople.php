@@ -14,9 +14,8 @@ function civicrm_api3_timelab_Getpeople($params) {
               $filterProjects .= ' and r.contact_id_b = ' . intval($params['project']);
             }
             if($params['project'] == 2402) { // timelab
-                $extrafields .= ', GROUP_CONCAT(DISTINCT(e.email)) as email, GROUP_CONCAT(DISTINCT(tel.phone)) as phone';
-                $extrajoins .= ' left join civicrm_phone as tel on tel.contact_id = c.id left join civicrm_email as e on e.contact_id = c.id and e.email LIKE "%@timelab.org"';
-                //$filterProjects .= ' and (e.email IS NULL or e.email LIKE "%@timelab.org") ';
+                $extrafields .= ', GROUP_CONCAT(DISTINCT(e.email)) as email';
+                $extrajoins .= ' left join civicrm_email as e on e.contact_id = c.id and e.email LIKE "%@timelab.org"';
             }
             else {
                 $filterProjects .= ' and cb.is_deleted = 0 and cb.contact_type = \'Organization\' ' .
