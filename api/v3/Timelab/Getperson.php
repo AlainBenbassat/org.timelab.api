@@ -23,6 +23,9 @@ function civicrm_api3_timelab_Getperson($params) {
           left join
             civicrm_value_public_5 as p
             on c.id = p.entity_id
+          left join
+            civicrm_website as w
+            on c.id = w.contact_id
           where
             c.id = %1
           order by
@@ -39,6 +42,24 @@ function civicrm_api3_timelab_Getperson($params) {
         while ($dao->fetch()) {
             $person[] = $dao->toArray();
         }
+
+        // get websites
+        $sql = "
+            select *
+            from civicrm_website
+            where contact_id = %1";
+        $sqlParams = [
+          1 => [$person[0]['id'], 'Integer']
+        ];
+
+        $websiteTypes = CRM_Core_PseudoConstant::get('CRM_Core_DAO_Website', 'website_type_id');
+        $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+        while ($dao->fetch()) {
+          $w = $dao->toArray();
+          $w['website_type'] = $websiteTypes[$w['website_type_id']];
+          $websites[] = $w;
+        }
+        $person[0]['websites'] = $websites;
 
         // get projects
         $sql = "

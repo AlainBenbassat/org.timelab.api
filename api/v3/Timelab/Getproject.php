@@ -16,16 +16,12 @@ function civicrm_api3_timelab_Getproject($params) {
             c.id,
             c.display_name,
             c.image_URL as image,
-            p.bio_15 as bio,
-            GROUP_CONCAT(w.url) as websites
+            p.bio_15 as bio
           from
             civicrm_contact as c
           left join
             civicrm_value_public_5 as p
             on c.id = p.entity_id
-          left join
-            civicrm_website as w
-            on c.id = w.contact_id
           where
             c.id = %1
           group by
@@ -42,12 +38,26 @@ function civicrm_api3_timelab_Getproject($params) {
 
         $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
         while ($dao->fetch()) {
-            $p = $dao->toArray();
-            if(strlen($p['websites']) > 0) {
-                $p['websites'] = explode(',', $p['websites']);
-            }
-            $project[] = $p;
+            $project[] = $dao->toArray();
         }
+
+        // get websites
+        $sql = "
+              select *
+              from civicrm_website
+              where contact_id = %1";
+        $sqlParams = [
+          1 => [$project[0]['id'], 'Integer']
+        ];
+
+        $websiteTypes = CRM_Core_PseudoConstant::get('CRM_Core_DAO_Website', 'website_type_id');
+        $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+        while ($dao->fetch()) {
+          $w = $dao->toArray();
+          $w['website_type'] = $websiteTypes[$w['website_type_id']];
+          $websites[] = $w;
+        }
+        $project[0]['websites'] = $websites;
 
         // get people
         $sql = "
