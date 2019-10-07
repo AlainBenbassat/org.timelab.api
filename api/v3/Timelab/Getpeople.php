@@ -23,6 +23,7 @@ function civicrm_api3_timelab_Getpeople($params) {
                 $extrajoins .= '';
             }
         }
+
         $filterRelationshipType = "";
         if (array_key_exists('relationship_type', $params)) {
           if(!array_key_exists('IN', $params['relationship_type'])) {
@@ -35,12 +36,18 @@ function civicrm_api3_timelab_Getpeople($params) {
           $extrafields .= ', GROUP_CONCAT(DISTINCT(r.relationship_type_id)) AS relationship_type';
         }
 
+        if(array_key_exists('contact_type', $params)) {
+          $filterProjects .= ' and c.contact_type = %2 ';
+          $sqlParams[2] = [$params['contact_type'], 'String'];
+        }
+
         $sql = "
           select
             c.id,
             c.display_name,
             c.image_URL as image,
-            p.bio_15 as bio
+            p.bio_15 as bio,
+            c.contact_type
             $extrafields
           from
             civicrm_contact as c
