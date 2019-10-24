@@ -3,7 +3,7 @@
 function _civicrm_api3_timelab_Getpeople_spec(&$spec) {
 }
 
-function civicrm_api3_timelab_Getpeople($params) {
+function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
     try {
         $sqlParams = [];
         $extrajoins  = '';
@@ -12,15 +12,31 @@ function civicrm_api3_timelab_Getpeople($params) {
         if (array_key_exists('project', $params) || !array_key_exists('relationship_type', $params)) {
             if (array_key_exists('project', $params)) {
               $filterProjects .= ' and r.contact_id_b = ' . intval($params['project']);
+
+              if(array_key_exists('project_api_key', $params)){
+                $sql = "select id from civicrm_contact a where api_key = %1 limit 1";
+                $sqlParams = [
+                  1 => [$params['project_api_key'], 'String'],
+                ];
+                $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+                if($dao->fetchValue()) {
+                  $extrafields .= ', c.first_name, c.last_name, c.organization_name, c.job_title, c.birth_date, c.gender_id ';
+                }
+                else{
+                  unset($params['project_api_key']);
+                }
+              }
             }
-            if($params['project'] == 2402) { // timelab
+            if(!!$params['project_api_key']) {
+              if ($params['project'] == 2402) { // timelab
                 $extrafields .= ', GROUP_CONCAT(DISTINCT(e.email)) as email';
-                $extrajoins .= ' left join civicrm_email as e on e.contact_id = c.id and e.email LIKE "%@timelab.org"';
-            }
-            else {
+                $extrajoins .= ' left join civicrm_email as e on e.contact_id = c.id  and e.email LIKE "%@timelab.org" ';
+              }
+              else {
                 $filterProjects .= ' and cb.is_deleted = 0 and cb.contact_type = \'Organization\' ' .
-                                  'and cb.contact_sub_type = \'Project\' ';
+                  'and cb.contact_sub_type = \'Project\' ';
                 $extrajoins .= '';
+              }
             }
         }
 
@@ -61,6 +77,7 @@ function civicrm_api3_timelab_Getpeople($params) {
           where
             c.is_deleted = 0
             and (r.end_date IS NULL or r.end_date > NOW()) 
+            $extraWhere
             $filterProjects
             $filterRelationshipType
           group by
@@ -74,6 +91,53 @@ function civicrm_api3_timelab_Getpeople($params) {
         $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
         while ($dao->fetch()) {
             $people[] = $dao->toArray();
+        }
+
+        if(array_key_exists('project_api_key', $params)){
+          foreach($people as $pi => $p) {
+            $people[$pi]['email'] = [];
+            $sql = "select * from civicrm_email where contact_id = %1";
+            $sqlParams = [
+              1 => [$p['id'], 'Integer'],
+            ];
+            $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+            while ($dao->fetch()) {
+              $people[$pi]['email'][] = $dao->toArray();
+            }
+          }
+          foreach($people as $pi => $p) {
+            $people[$pi]['phone'] = [];
+            $sql = "select * from civicrm_phone where contact_id = %1";
+            $sqlParams = [
+              1 => [$p['id'], 'Integer'],
+            ];
+            $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+            while ($dao->fetch()) {
+              $people[$pi]['phone'][] = $dao->toArray();
+            }
+          }
+          foreach($people as $pi => $p) {
+            $people[$pi]['website'] = [];
+            $sql = "select * from civicrm_website where contact_id = %1";
+            $sqlParams = [
+              1 => [$p['id'], 'Integer'],
+            ];
+            $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+            while ($dao->fetch()) {
+              $people[$pi]['website'][] = $dao->toArray();
+            }
+          }
+          foreach($people as $pi => $p) {
+            $people[$pi]['address'] = [];
+            $sql = "select * from civicrm_address where contact_id = %1";
+            $sqlParams = [
+              1 => [$p['id'], 'Integer'],
+            ];
+            $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+            while ($dao->fetch()) {
+              $people[$pi]['address'][] = $dao->toArray();
+            }
+          }
         }
 
         return civicrm_api3_create_success($people, $params, 'Timelab', 'getPeople');
