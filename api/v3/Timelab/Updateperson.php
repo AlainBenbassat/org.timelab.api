@@ -66,9 +66,9 @@ function civicrm_api3_timelab_Updateperson($params) {
           throw new API_Exception("Failed to save image");
         }
       }
-      else{
-        $params['image_URL'] = $params['image'];
-      }
+    }
+    else{
+      $params['image_URL'] = $params['image'];
     }
 
     $contact = CRM_Contact_BAO_Contact::create($params);
