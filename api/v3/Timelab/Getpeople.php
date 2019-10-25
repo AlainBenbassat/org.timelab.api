@@ -27,7 +27,7 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
                 }
               }
             }
-            if(!!$params['project_api_key']) {
+            if(!$params['project_api_key']) {
               if ($params['project'] == 2402) { // timelab
                 $extrafields .= ', GROUP_CONCAT(DISTINCT(e.email)) as email';
                 $extrajoins .= ' left join civicrm_email as e on e.contact_id = c.id  and e.email LIKE "%@timelab.org" ';
