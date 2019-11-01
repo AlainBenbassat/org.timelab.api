@@ -166,16 +166,25 @@ class CRM_Timelab_Event {
     return $participants;
   }
 
-  public function getEventList($fromDate, $toDate, $limit = null, $exceptTypes = [], $stromen = []) {
-    $exceptTypeString = '(' ;
-    foreach($exceptTypes as $e){
-      $exceptTypeString .= "'".addslashes($e)."',";
+  public function getEventList($fromDate, $toDate, $limit = null, $exceptTypes = [], $stromen = [], $projects = [], $orderdirection = 'ASC') {
+    $sqlParams = [
+      1 => [$fromDate . (strpos($fromDate,':') === false ? ' 00:00:00' : ''), 'String'],
+      2 => [$toDate . (strpos($toDate,':') === false ? ' 23:59:59' : ''), 'String'],
+      3 => [$this->timelabURL, 'String']
+    ];
+    if(count($exceptTypes)){
+      $sqlParams[4] = [implode(',', $exceptTypes), 'CommaSeparatedIntegers'];
     }
-    $exceptTypeString[-1] = ')';
-    foreach($stromen as $i => $s){
-        $stromen[$i] = "'".addslashes($s)."'";
+    if(count($stromen)){
+      $sqlParams[5] = [implode(',', $stromen), 'CommaSeparatedIntegers'];
     }
-    $stromenString = '('.implode(',', $stromen).')';
+    if(count($projects)){
+      $sqlParams[6] = [implode(',', $projects), 'CommaSeparatedIntegers'];
+    }
+    if($limit == 1 && is_numeric($orderdirection)){
+      $sqlParams[7] = [intval($orderdirection), 'Integer'];
+    }
+
     $sql = "
       select
         e.id
@@ -188,6 +197,7 @@ class CRM_Timelab_Event {
         , e.is_online_registration
         , ov.label as event_type
         , concat(%3, 'sites/all/files/civicrm/custom/', f.uri) as image
+        , f.id as image_file_id
         , i.stroom_43 as stroom
       from
         civicrm_event e
@@ -205,20 +215,16 @@ class CRM_Timelab_Event {
         e.is_public = 1
       and 
         e.start_date between %1 and %2 ".
-      (count($exceptTypes) ? "and ov.label NOT IN $exceptTypeString" : "").
-      (count($stromen) ? " and i.stroom_43 IN $stromenString" : "")."
-      order by
-        e.start_date
-    ";
+      (count($exceptTypes) ? "and ov.label NOT IN (%4)" : "").
+      (count($stromen) ? " and i.stroom_43 IN (%5)" : "").
+      (count($projects) ? " and i.project_45 IN (%6)" : "").
+      (($limit == 1 && is_numeric($orderdirection)) ? " and e.id = %7 " : '').
+      (is_numeric($orderdirection) ? '' : " order by
+        e.start_date $orderdirection
+      ");
     if($limit){
       $sql .= " limit $limit";
     }
-
-    $sqlParams = [
-      1 => [$fromDate . ' 00:00:00', 'String'],
-      2 => [$toDate . ' 23:59:59', 'String'],
-      3 => [$this->timelabURL, 'String']
-    ];
 
     $events = [];
 

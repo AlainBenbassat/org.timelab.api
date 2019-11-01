@@ -45,8 +45,26 @@ function civicrm_api3_timelab_Geteventlist($params) {
       $limit = null;
     }
 
+    // check if to date was specified
+    if (array_key_exists('projects', $params)) {
+      $projects = $params['projects'];
+    }
+    else if(array_key_exists('project', $params)) {
+      $projects = [intval($params['project'])];
+    }
+    else {
+      $projects = [];
+    }
+
+    if(array_key_exists('orderdirection', $params) && strtoupper($params['orderdirection']) == 'DESC') {
+      $orderdirection = 'DESC';
+    }
+    else{
+      $orderdirection = 'ASC';
+    }
+
     $eventHelper = new CRM_Timelab_Event();
-    $events = $eventHelper->getEventList($fromDate, $toDate, $limit, $exceptTypes, $stromen);
+    $events = $eventHelper->getEventList($fromDate, $toDate, $limit, $exceptTypes, $stromen, $projects, $orderdirection);
 
     return civicrm_api3_create_success($events, $params, 'Timelab', 'getEventList');
   }
