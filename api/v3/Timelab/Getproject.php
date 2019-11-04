@@ -65,7 +65,8 @@ function civicrm_api3_timelab_Getproject($params) {
             ca.id,
             ca.display_name,
             ca.image_URL as image,
-            group_concat(rt.label_b_a) as label_b_a
+            group_concat(rt.label_b_a) as label_b_a,
+            ca.job_title
           from
             civicrm_relationship as r
           left join
