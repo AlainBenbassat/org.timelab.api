@@ -132,30 +132,35 @@ function civicrm_api3_timelab_Updateevent($params) {
   }
   $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
   if($project = $dao->fetchValue()) {
-    if($params['image'] != $params['original_image']){
-      $params['custom_25'] = handle_api_image($params['image'], 'event_'.$params['event_id'], 'customfield');
+    if($params['to_delete']){
+      return civicrm_api3('Event', 'delete', [
+        'id' => $params['event_id'],
+      ]);
     }
-    $params['custom_43'] = $params['stroom'];
-    $params['custom_45'] = $project;
-    $params['is_public'] = 1;
-    $params['is_monetary'] = $params['is_monetary'] ? 1 : 0;
-    $params['is_online_registration'] = $params['is_online_registration'] ? 1 : 0;
-    if(array_key_exists($params,'event_id')) {
-      $params['id'] = $params['event_id'];
+    else {
+      if ($params['image'] != $params['original_image']) {
+        $params['custom_25'] = handle_api_image($params['image'], 'event_' . $params['event_id'], 'customfield');
+      }
+      $params['custom_43'] = $params['stroom'];
+      $params['custom_45'] = $project;
+      $params['is_public'] = 1;
+      $params['is_monetary'] = $params['is_monetary'] ? 1 : 0;
+      $params['is_online_registration'] = $params['is_online_registration'] ? 1 : 0;
+      if (array_key_exists($params, 'event_id')) {
+        $params['id'] = $params['event_id'];
+      }
+
+      $event = civicrm_api3('Event', 'create', $params);
+
+      if (is_a($event, 'CRM_Core_Error')) {
+        throw new API_Exception($event->_errors[0]['message']);
+      } else {
+        $eventHelper = new CRM_Timelab_Event();
+        $event = $eventHelper->getEventList($params['start_date'], $params['end_date'], 1, [], [], [$project], array_keys($event['values'])[0]);
+
+        return civicrm_api3_create_success($event, $params, 'Timelab', 'getEventList');
+      }
     }
-
-    $event = civicrm_api3('Event', 'create', $params);
-
-    if (is_a($event, 'CRM_Core_Error')) {
-      throw new API_Exception($event->_errors[0]['message']);
-    }
-    else{
-      $eventHelper = new CRM_Timelab_Event();
-      $event = $eventHelper->getEventList($params['start_date'], $params['end_date'], 1, [], [], [$project], array_keys($event['values'])[0]);
-
-      return civicrm_api3_create_success($event, $params, 'Timelab', 'getEventList');
-    }
-
   }
   else{
     throw new API_Exception("Event ID & project API Key combination is invalid");
