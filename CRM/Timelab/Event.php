@@ -216,7 +216,7 @@ class CRM_Timelab_Event {
       and
         e.is_public = 1
       and 
-        e.start_date between %1 and %2 ".
+        ((e.end_date IS NULL and e.start_date between %1 and %2) or (e.end_date >= %1 and e.start_date <= %2)) ".
       (count($exceptTypes) ? "and ov.label NOT IN (%4)" : "").
       (count($stromen) ? " and i.stroom_43 IN (%5)" : "").
       (count($projects) ? " and i.project_45 IN (%6)" : "").
