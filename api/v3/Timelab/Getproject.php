@@ -65,7 +65,8 @@ function civicrm_api3_timelab_Getproject($params) {
             ca.id,
             ca.display_name,
             ca.image_URL as image,
-            group_concat(rt.label_b_a) as label_b_a,
+            group_concat(rt.label_b_a) as label,
+            group_concat(r.description) as description,
             ca.job_title
           from
             civicrm_relationship as r
@@ -74,9 +75,9 @@ function civicrm_api3_timelab_Getproject($params) {
             on r.relationship_type_id = rt.id
           left join
             civicrm_contact as ca
-            on ca.id = r.contact_id_a
+            on (ca.id = r.contact_id_b and r.contact_id_b != %1) or (ca.id = r.contact_id_a and r.contact_id_a != %1)
           where
-            r.contact_id_b = %1
+            (r.contact_id_a = %1 or r.contact_id_b = %1)
             and (r.end_date IS NULL or r.end_date > NOW())
             and ca.is_deleted = 0
           GROUP BY
