@@ -16,12 +16,16 @@ function civicrm_api3_timelab_Getproject($params) {
             c.id,
             c.display_name,
             c.image_URL as image,
-            p.bio_15 as bio
+            p.bio_15 as bio,
+            group_concat(i.selector_53) as instagram_selectors 
           from
             civicrm_contact as c
           left join
             civicrm_value_public_5 as p
             on c.id = p.entity_id
+          left join
+            civicrm_value_instagram_fee_33 as i
+            on c.id = i.entity_id
           where
             c.id = %1
           group by

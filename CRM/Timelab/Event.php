@@ -74,8 +74,6 @@ class CRM_Timelab_Event {
           e.id = %1
         and
           pf.is_active = 1
-        and
-          pfv.is_active = 1
         order by
           pf.weight
       ";
@@ -201,6 +199,7 @@ class CRM_Timelab_Event {
         , concat(%3, 'sites/all/files/civicrm/custom/', f.uri) as image
         , f.id as image_file_id
         , i.stroom_43 as stroom
+        , pfv.amount as price
       from
         civicrm_event e
       inner join
@@ -211,10 +210,20 @@ class CRM_Timelab_Event {
         civicrm_value_img_9 i on i.entity_id = e.id
       left outer join 
         civicrm_file f on i.featured_image_25 = f.id
+      left outer JOIN
+        civicrm_price_set_entity pe on pe.entity_id = e.id and pe.entity_table = 'civicrm_event'
+      left outer JOIN
+        civicrm_price_set ps on ps.id = pe.price_set_id
+      left outer JOIN
+        civicrm_price_field pf on pf.price_set_id = ps.id  
+      left outer JOIN
+        civicrm_price_field_value pfv on pfv.price_field_id = pf.id  
       where 
         e.is_active = 1
       and
         e.is_public = 1
+      and
+        (pfv.is_active IS NULL or pfv.is_active = 1)
       and 
         ((e.end_date IS NULL and e.start_date between %1 and %2) or (e.end_date >= %1 and e.start_date <= %2)) ".
       (count($exceptTypes) ? "and ov.label NOT IN (%4)" : "").
