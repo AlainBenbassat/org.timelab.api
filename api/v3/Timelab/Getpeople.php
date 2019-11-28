@@ -25,6 +25,14 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
                 else{
                   unset($params['project_api_key']);
                 }
+                $extrajoins .= '
+                  inner join
+                    civicrm_relationship_type as rt on rt.id = r.relationship_type_id
+                ';
+                $extrafields .= '
+                           , GROUP_CONCAT(DISTINCT(r.relationship_type_id)) AS relationship_type
+                           , GROUP_CONCAT(DISTINCT(r.description)) AS project_roles
+                           , GROUP_CONCAT(DISTINCT(rt.label_b_a)) as label ';
               }
             }
             if(!$params['project_api_key']) {
