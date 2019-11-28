@@ -75,7 +75,8 @@ function civicrm_api3_timelab_Getperson($params) {
             cb.id,
             cb.display_name,
             cb.image_URL as image,
-            group_concat(rt.label_a_b) as label_a_b
+            group_concat(rt.label_a_b) as label_a_b,
+            group_concat(r.description) as description
           from
             civicrm_relationship as r
           left join
