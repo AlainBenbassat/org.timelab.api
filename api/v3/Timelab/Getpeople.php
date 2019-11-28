@@ -63,12 +63,15 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
             c.display_name,
             c.image_URL as image,
             p.bio_15 as bio,
-            c.contact_type
+            c.contact_type,
+            gdpr.may_be_shown_on_site__54 as may_be_shown_on_site
             $extrafields
           from
             civicrm_contact as c
           left join
             civicrm_value_public_5 as p on c.id = p.entity_id
+          left join
+            civicrm_value_gdpr_34 as gdpr on c.id = gdpr.entity_id
           inner join
             civicrm_relationship as r on r.contact_id_a = c.id
           inner join
@@ -76,7 +79,8 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
           $extrajoins
           where
             c.is_deleted = 0
-            and (r.end_date IS NULL or r.end_date > NOW()) 
+            and (r.end_date IS NULL or r.end_date > NOW())
+            and (gdpr.may_be_shown_on_site__54 IS NULL or gdpr.may_be_shown_on_site__54 != 'no')
             $extraWhere
             $filterProjects
             $filterRelationshipType

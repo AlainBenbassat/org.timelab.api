@@ -18,7 +18,8 @@ function civicrm_api3_timelab_Getperson($params) {
             c.image_URL as image,
             p.bio_15 as bio,
             c.contact_type,
-            c.job_title
+            c.job_title,
+            gdpr.may_be_shown_on_site__54 as may_be_shown_on_site
           from
             civicrm_contact as c
           left join
@@ -27,6 +28,9 @@ function civicrm_api3_timelab_Getperson($params) {
           left join
             civicrm_website as w
             on c.id = w.contact_id
+          left join
+            civicrm_value_gdpr_34 as gdpr
+            on c.id = gdpr.entity_id
           where
             c.id = %1
           order by
@@ -41,29 +45,32 @@ function civicrm_api3_timelab_Getperson($params) {
 
         $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
         while ($dao->fetch()) {
+          if($dao->may_be_shown_on_site != 'no') {
             $person[] = $dao->toArray();
+          }
         }
 
-        // get websites
-        $sql = "
+        if(count($person)) {
+          // get websites
+          $sql = "
             select *
             from civicrm_website
             where contact_id = %1";
-        $sqlParams = [
-          1 => [$person[0]['id'], 'Integer']
-        ];
+          $sqlParams = [
+            1 => [$person[0]['id'], 'Integer']
+          ];
 
-        $websiteTypes = CRM_Core_PseudoConstant::get('CRM_Core_DAO_Website', 'website_type_id');
-        $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
-        while ($dao->fetch()) {
-          $w = $dao->toArray();
-          $w['website_type'] = $websiteTypes[$w['website_type_id']];
-          $websites[] = $w;
-        }
-        $person[0]['websites'] = $websites;
+          $websiteTypes = CRM_Core_PseudoConstant::get('CRM_Core_DAO_Website', 'website_type_id');
+          $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+          while ($dao->fetch()) {
+            $w = $dao->toArray();
+            $w['website_type'] = $websiteTypes[$w['website_type_id']];
+            $websites[] = $w;
+          }
+          $person[0]['websites'] = $websites;
 
-        // get projects
-        $sql = "
+          // get projects
+          $sql = "
           select
             cb.id,
             cb.display_name,
@@ -84,19 +91,19 @@ function civicrm_api3_timelab_Getperson($params) {
             and cb.contact_type = 'Organization'
           GROUP BY
             cb.id";
-        $sqlParams = [
+          $sqlParams = [
             1 => [$person[0]['id'], 'Integer']
-        ];
+          ];
 
-        $projects = [];
-        $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
-        while ($dao->fetch()) {
+          $projects = [];
+          $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+          while ($dao->fetch()) {
             $projects[] = $dao->toArray();
-        }
-        $person[0]['projects'] = $projects;
+          }
+          $person[0]['projects'] = $projects;
 
-        // get participations
-        $sql = "
+          // get participations
+          $sql = "
           select
               e.id
             , e.title
@@ -128,18 +135,18 @@ function civicrm_api3_timelab_Getperson($params) {
             p.contact_id = %1
           order by
             e.start_date DESC";
-        $sqlParams = [
+          $sqlParams = [
             1 => [$person[0]['id'], 'Integer'],
             2 => [CRM_Utils_System::baseURL(), 'String']
-        ];
+          ];
 
-        $events = [];
-        $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
-        while ($dao->fetch()) {
+          $events = [];
+          $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+          while ($dao->fetch()) {
             $events[] = $dao->toArray();
+          }
+          $person[0]['events'] = $events;
         }
-        $person[0]['events'] = $events;
-
 
         return civicrm_api3_create_success($person, $params, 'Timelab', 'getPerson');
     }

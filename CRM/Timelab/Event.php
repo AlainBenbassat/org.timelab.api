@@ -125,7 +125,8 @@ class CRM_Timelab_Event {
         c.id,
         c.display_name,
         c.image_URL as image,
-        cov.label as role
+        cov.label as role,
+        gdpr.may_be_shown_on_site__54 as may_be_shown_on_site
       from
         civicrm_event e
       inner join 
@@ -136,6 +137,8 @@ class CRM_Timelab_Event {
         civicrm_participant_status_type st on st.id = p.status_id
       inner join
         civicrm_option_value cov on cov.value = p.role_id
+      left join
+        civicrm_value_gdpr_34 as gdpr on c.id = gdpr.entity_id
       where 
         e.id = %1
       and
@@ -146,6 +149,8 @@ class CRM_Timelab_Event {
         st.is_counted = 1
       and
         cov.option_group_id=13
+      and 
+        (gdpr.may_be_shown_on_site__54 IS NULL or gdpr.may_be_shown_on_site__54 != 'no')
       order by
         role,
         c.sort_name
