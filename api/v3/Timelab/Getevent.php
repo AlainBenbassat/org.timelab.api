@@ -12,7 +12,7 @@ function civicrm_api3_timelab_Getevent($params) {
     }
 
     $eventHelper = new CRM_Timelab_Event();
-    $eventDetails = $eventHelper->getEventDetails($params['event_id']);
+    $eventDetails = $eventHelper->getEventDetails($params['event_id'], isset($params['fetch_participants']) && $params['fetch_participants']);
 
     return civicrm_api3_create_success($eventDetails, $params, 'Timelab', 'getEvent');
   }

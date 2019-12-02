@@ -1,5 +1,6 @@
 <?php
 
+
 class CRM_Timelab_Event {
   private $timelabURL;
 
@@ -7,7 +8,7 @@ class CRM_Timelab_Event {
     $this->timelabURL = CRM_Utils_System::baseURL();
   }
 
-  public function getEventDetails($id) {
+  public function getEventDetails($id, $fetchParticipants = false) {
     $sql = "
       select
         e.id
@@ -24,6 +25,7 @@ class CRM_Timelab_Event {
         , e.is_online_registration
         , i.stroom_43 as stroom
         , i.project_45 as project
+        , sv.label as stream_label
       from
         civicrm_event e
       inner join
@@ -34,6 +36,9 @@ class CRM_Timelab_Event {
         civicrm_value_img_9 i on i.entity_id = e.id
       left outer join 
         civicrm_file f on i.featured_image_25 = f.id 
+      left join
+        civicrm_option_value as sv
+        on sv.option_group_id = 132 and sv.value = i.stroom_43   
       where 
         e.id = %1
     ";
@@ -114,6 +119,10 @@ class CRM_Timelab_Event {
         $dao = CRM_Core_DAO::executeQuery($sql);
         $g['fields'] = $dao->fetchAll();
       }
+    }
+
+    if($fetchParticipants) {
+      $event['participants'] = $this->getEventParticipants($id);
     }
 
     return $event;
