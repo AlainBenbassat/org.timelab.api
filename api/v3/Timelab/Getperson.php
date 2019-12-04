@@ -90,6 +90,7 @@ function civicrm_api3_timelab_Getperson($params) {
             and (r.end_date IS NULL or r.end_date > NOW())
             and cb.is_deleted = 0
             and cb.contact_type = 'Organization'
+            and cb.contact_sub_type IN ('Project_timelab', 'Project')
           GROUP BY
             cb.id";
           $sqlParams = [
