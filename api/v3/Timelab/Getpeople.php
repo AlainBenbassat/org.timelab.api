@@ -41,8 +41,10 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
                 $extrajoins .= ' left join civicrm_email as e on e.contact_id = c.id  and e.email LIKE "%@timelab.org" ';
               }
               else {
-                $filterProjects .= ' and cb.is_deleted = 0 and cb.contact_type = \'Organization\' ' .
-                  'and cb.contact_sub_type = \'Project\' ';
+                $filterProjects .= ' and cb.is_deleted = 0 and cb.contact_type = \'Organization\' ';
+                if(!array_key_exists('project', $params)){
+                  $filterProjects .= ' and cb.contact_sub_type IN (\'Project\', \'Project_timelab\') ';
+                }
                 $extrajoins .= '';
               }
             }
@@ -88,7 +90,7 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
           where
             c.is_deleted = 0
             and (r.end_date IS NULL or r.end_date > NOW())
-            and (gdpr.may_be_shown_on_site__54 IS NULL or gdpr.may_be_shown_on_site__54 != 'no')
+            and (c.contact_type != 'Individual' or gdpr.may_be_shown_on_site__54 IS NULL or gdpr.may_be_shown_on_site__54 != 'no')
             $extraWhere
             $filterProjects
             $filterRelationshipType
