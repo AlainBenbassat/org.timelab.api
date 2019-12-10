@@ -114,7 +114,7 @@ function civicrm_api3_timelab_Updateperson($params) {
               }
               CRM_Core_DAO::executeQuery($sql, $sqlParams);
             }
-            // this is cone by the CRM_Contact_BAO_Contact::create command
+            // this is done by the CRM_Contact_BAO_Contact::create command
             /*else {
               $sqlParams = [
                 1 => [$params['contact_id'], 'Integer']
@@ -137,6 +137,16 @@ function civicrm_api3_timelab_Updateperson($params) {
             }*/
           }
         }
+      }
+
+      if (array_key_exists('project_roles', $params)) {
+        $sql = "UPDATE civicrm_relationship SET description = %1 WHERE (contact_id_a = %2 AND contact_id_b = %3) or (contact_id_a = %3 AND contact_id_b = %2)";
+        $sqlParams = [
+          1 => [$params['project_roles'], 'String'],
+          2 => [$project, 'Integer'],
+          3 => [$params['contact_id'], 'Integer']
+        ];
+        CRM_Core_DAO::executeQuery($sql, $sqlParams);
       }
 
       return civicrm_api3_timelab_Getpeople(['project_api_key' => $params['project_api_key'], 'project' => $project], ' and c.id = '.$params['contact_id']);
