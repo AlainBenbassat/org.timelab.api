@@ -59,7 +59,8 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
             $sqlParams[1] = [implode(',', $params['relationship_type']['IN']), 'CommaSeparatedIntegers'];
             $filterRelationshipType = ' and r.relationship_type_id IN (%1) ';
           }
-          $extrafields .= ', GROUP_CONCAT(DISTINCT(r.relationship_type_id)) AS relationship_type';
+          $extrafields .= ', GROUP_CONCAT(DISTINCT(r.relationship_type_id)) AS relationship_type
+                           , GROUP_CONCAT(DISTINCT(r.description)) AS project_roles';
         }
 
         if(array_key_exists('contact_type', $params)) {
