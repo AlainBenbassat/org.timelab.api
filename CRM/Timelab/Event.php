@@ -30,16 +30,16 @@ class CRM_Timelab_Event {
         civicrm_event e
       inner join
         civicrm_option_value ov on ov.value = e.event_type_id
-      inner join 
+      inner join
         civicrm_option_group og on ov.option_group_id = og.id and og.name = 'event_type'
-      left outer join 
+      left outer join
         civicrm_value_img_9 i on i.entity_id = e.id
-      left outer join 
-        civicrm_file f on i.featured_image_25 = f.id 
+      left outer join
+        civicrm_file f on i.featured_image_25 = f.id
       left join
         civicrm_option_value as sv
-        on sv.option_group_id = 132 and sv.value = i.stroom_43   
-      where 
+        on sv.option_group_id = 132 and sv.value = i.stroom_43
+      where
         e.id = %1
     ";
     $sqlParams = [
@@ -72,9 +72,9 @@ class CRM_Timelab_Event {
         left outer JOIN
           civicrm_price_set ps on ps.id = pe.price_set_id
         left outer JOIN
-          civicrm_price_field pf on pf.price_set_id = ps.id  
+          civicrm_price_field pf on pf.price_set_id = ps.id
         left outer JOIN
-          civicrm_price_field_value pfv on pfv.price_field_id = pf.id  
+          civicrm_price_field_value pfv on pfv.price_field_id = pf.id
         where
           e.id = %1
         and
@@ -138,27 +138,27 @@ class CRM_Timelab_Event {
         gdpr.may_be_shown_on_site__54 as may_be_shown_on_site
       from
         civicrm_event e
-      inner join 
-        civicrm_participant p on e.id = p.event_id          
-      inner join 
+      inner join
+        civicrm_participant p on e.id = p.event_id
+      inner join
         civicrm_contact c on c.id = p.contact_id
-      inner join 
+      inner join
         civicrm_participant_status_type st on st.id = p.status_id
       inner join
         civicrm_option_value cov on cov.value = p.role_id
       left join
         civicrm_value_gdpr_34 as gdpr on c.id = gdpr.entity_id
-      where 
+      where
         e.id = %1
       and
         e.is_active = 1
       and
         e.is_public = 1
-      and 
+      and
         st.is_counted = 1
       and
         cov.option_group_id=13
-      and 
+      and
         (gdpr.may_be_shown_on_site__54 IS NULL or gdpr.may_be_shown_on_site__54 != 'no')
       order by
         role,
@@ -190,8 +190,12 @@ class CRM_Timelab_Event {
     if(count($stromen)){
       $sqlParams[5] = [implode(',', $stromen), 'CommaSeparatedIntegers'];
     }
-    if(count($projects)){
-      $sqlParams[6] = [implode(',', $projects), 'CommaSeparatedIntegers'];
+    if(count($projects)) {
+      if (!isset($projects['type'])) {
+        $sqlParams[6] = [implode(',', $projects), 'CommaSeparatedIntegers'];
+      } else {
+        $sqlParams[8] = [$projects['type'], "String", CRM_Core_DAO::QUERY_FORMAT_WILDCARD];
+      }
     }
     if($limit == 1 && is_numeric($orderdirection)){
       $sqlParams[7] = [intval($orderdirection), 'Integer'];
@@ -218,31 +222,38 @@ class CRM_Timelab_Event {
         civicrm_event e
       inner join
         civicrm_option_value ov on ov.value = e.event_type_id
-      inner join 
+      inner join
         civicrm_option_group og on ov.option_group_id = og.id and og.name = 'event_type'
-      left outer join 
+      left outer join
         civicrm_value_img_9 i on i.entity_id = e.id
-      left outer join 
+      left outer join
         civicrm_file f on i.featured_image_25 = f.id
       left outer JOIN
         civicrm_price_set_entity pe on pe.entity_id = e.id and pe.entity_table = 'civicrm_event'
       left outer JOIN
         civicrm_price_set ps on ps.id = pe.price_set_id
       left outer JOIN
-        civicrm_price_field pf on pf.price_set_id = ps.id  
+        civicrm_price_field pf on pf.price_set_id = ps.id
       left outer JOIN
-        civicrm_price_field_value pfv on pfv.price_field_id = pf.id  
-      where 
+        civicrm_price_field_value pfv on pfv.price_field_id = pf.id";
+    if(isset($sqlParams[8])){
+      $sql .= "
+      inner JOIN
+        civicrm_contact c on c.id = i.project_45";
+    }
+    $sql .= "
+      where
         e.is_active = 1
       and
         e.is_public = 1
       and
         (pfv.is_active IS NULL or pfv.is_active = 1)
-      and 
+      and
         ((e.end_date IS NULL and e.start_date between %1 and %2) or (e.end_date >= %1 and e.start_date <= %2)) ".
       (count($exceptTypes) ? "and ov.label NOT IN (%4)" : "").
       (count($stromen) ? " and i.stroom_43 IN (%5)" : "").
-      (count($projects) ? " and i.project_45 IN (%6)" : "").
+      (isset($sqlParams[6]) ? " and i.project_45 IN (%6)" : "").
+      (isset($sqlParams[8]) ? " and c.contact_sub_type LIKE %8" : "").
       (($limit == 1 && is_numeric($orderdirection)) ? " and e.id = %7 " : '').
       (is_numeric($orderdirection) ? '' : " order by
         e.start_date $orderdirection

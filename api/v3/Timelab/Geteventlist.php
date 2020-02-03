@@ -49,6 +49,9 @@ function civicrm_api3_timelab_Geteventlist($params) {
     if (array_key_exists('projects', $params)) {
       $projects = $params['projects'];
     }
+    else if (array_key_exists('project_types', $params)) {
+      $projects = ['type' => $params['project_types']];
+    }
     else if(array_key_exists('project', $params)) {
       $projects = [intval($params['project'])];
     }
