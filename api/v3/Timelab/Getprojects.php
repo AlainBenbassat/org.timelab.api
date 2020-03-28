@@ -9,10 +9,17 @@ function civicrm_api3_timelab_Getprojects($params, $extraWhere = '') {
         $types = $params['types'];
     }
     try {
-        foreach($types as $k => $t) {
-          $types[$k] = addslashes(trim($t));
+        $typestring = '';
+        if(count($types)) {
+          foreach ($types as $k => $t) {
+            $types[$k] = addslashes(trim($t));
+            if($k != 0) {
+              $typestring .= " OR ";
+            }
+            $typestring .= 'contact_sub_type LIKE "%' . $types[$k] . '%"';
+          }
+          $typestring = "AND ($typestring)";
         }
-        $typestring = "'".implode("','",$types)."'";
         $sql = "
           select
             c.id,
@@ -32,11 +39,11 @@ function civicrm_api3_timelab_Getprojects($params, $extraWhere = '') {
             on c.id = s.entity_id
           left join
             civicrm_option_value as sv
-            on sv.option_group_id = 132 and sv.value = s.stroom_44   
+            on sv.option_group_id = 132 and sv.value = s.stroom_44
           where
             c.is_deleted = 0
             and c.contact_type = 'Organization'
-            and contact_sub_type in($typestring)
+            $typestring
           group by
             c.id
           order by
@@ -46,7 +53,9 @@ function civicrm_api3_timelab_Getprojects($params, $extraWhere = '') {
         $projects = [];
         $dao = CRM_Core_DAO::executeQuery($sql, []);
         while ($dao->fetch()) {
-            $projects[] = $dao->toArray();
+            $p = $dao->toArray();
+            $p['type'] = explode('' , trim($p['type'], ' \t\n\r\0\x0B'));
+            $projects[] = $p;
         }
 
         return civicrm_api3_create_success($projects, $params, 'Timelab', 'getProjects');
