@@ -54,7 +54,13 @@ function civicrm_api3_timelab_Getprojects($params, $extraWhere = '') {
         $dao = CRM_Core_DAO::executeQuery($sql, []);
         while ($dao->fetch()) {
             $p = $dao->toArray();
-            $p['type'] = explode('' , trim($p['type'], ' \t\n\r\0\x0B'));
+            $p['type'] = explode('' , $p['type']);
+            foreach($p['type'] as $k => $t) {
+              if(trim($t) == '') {
+                unset($p['type'][$k]);
+              }
+            }
+            $p['type'] = array_values($p['type']);
             $projects[] = $p;
         }
 
