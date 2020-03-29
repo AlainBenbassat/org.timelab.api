@@ -16,7 +16,7 @@ function civicrm_api3_timelab_Getprojects($params, $extraWhere = '') {
             if($k != 0) {
               $typestring .= " OR ";
             }
-            $typestring .= 'contact_sub_type LIKE "%' . $types[$k] . '%"';
+            $typestring .= 'contact_sub_type LIKE "%' . $types[$k] . '%"';
           }
           $typestring = "AND ($typestring)";
         }
