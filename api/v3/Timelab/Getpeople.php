@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__  . '/../../../timelabfunctions.php';
+
 function _civicrm_api3_timelab_Getpeople_spec(&$spec) {
 }
 
@@ -105,7 +107,11 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
 
         $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
         while ($dao->fetch()) {
-            $people[] = $dao->toArray();
+            $arr = $dao->toArray();
+            if(!empty($arr['image'])) {
+              $arr['image'] = timelab_cleanCivicrmUrl($arr['image']);
+            }
+            $people[] = $arr;
         }
 
         if(array_key_exists('project_api_key', $params)){
