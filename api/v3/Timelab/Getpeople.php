@@ -13,7 +13,7 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
         $filterProjects = "";
         if (array_key_exists('project', $params) || !array_key_exists('relationship_type', $params)) {
             if (array_key_exists('project', $params)) {
-              $filterProjects .= ' and r.contact_id_b = ' . intval($params['project']);
+              $filterProjects .= ' and cb.id = ' . intval($params['project']);
 
               if(array_key_exists('project_api_key', $params)){
                 $sql = "select id from civicrm_contact a where api_key = %1 limit 1";
@@ -65,9 +65,30 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
                            , GROUP_CONCAT(DISTINCT(r.description)) AS project_roles';
         }
 
-        if(array_key_exists('contact_type', $params)) {
-          $filterProjects .= ' and c.contact_type = %2 ';
-          $sqlParams[2] = [$params['contact_type'], 'String'];
+        if(array_key_exists('contact_type', $params) || array_key_exists('types', $params)) {
+          if(!array_key_exists('contact_type', $params)) {
+            $params['contact_type'] = [];
+          }
+          else if(!is_array($params['contact_type'])) {
+            $params['contact_type'] = [$params['contact_type']];
+          }
+
+          if(array_key_exists('types', $params)) {
+            if(!is_array($params['types'])) {
+              $params['contact_type'][] = $params['types'];
+            }
+            else{
+              $params['contact_type'] = array_merge($params['contact_type'], $params['types']);
+            }
+          }
+
+          if(count($params['contact_type']) > 0) {
+            foreach ($params['contact_type'] as $k => $type) {
+              $params['contact_type'][$k] = "'" . addslashes($type) . "'";
+            }
+
+            $filterProjects .= ' and c.contact_type IN('.implode(',', $params['contact_type']).') ';
+          }
         }
 
         $sql = "
@@ -86,9 +107,9 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
           left join
             civicrm_value_gdpr_34 as gdpr on c.id = gdpr.entity_id
           inner join
-            civicrm_relationship as r on r.contact_id_a = c.id
+            civicrm_relationship as r on r.contact_id_a = c.id OR r.contact_id_b = c.id
           inner join
-            civicrm_contact as cb on r.contact_id_b = cb.id
+            civicrm_contact as cb on r.contact_id_b = cb.id OR r.contact_id_a = cb.id
           $extrajoins
           where
             c.is_deleted = 0
@@ -98,7 +119,7 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
             $filterProjects
             $filterRelationshipType
           group by
-            r.contact_id_a
+            c.id
           order by
             c.sort_name
         ";
