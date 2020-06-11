@@ -115,6 +115,7 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
             c.is_deleted = 0
             and (r.end_date IS NULL or r.end_date > NOW())
             and (c.contact_type != 'Individual' or gdpr.may_be_shown_on_site__54 IS NULL or gdpr.may_be_shown_on_site__54 != 'no')
+            and (c.contact_sub_type IS NULL or c.contact_sub_type NOT LIKE \"%Project%\")
             $extraWhere
             $filterProjects
             $filterRelationshipType
