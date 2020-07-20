@@ -202,7 +202,7 @@ class CRM_Timelab_Event {
     }
 
     $sql = "
-      select
+      select distinct
         e.id
         , e.title
         , e.start_date
@@ -217,7 +217,6 @@ class CRM_Timelab_Event {
         , concat(%3, 'sites/all/files/civicrm/custom/', f.uri) as image
         , f.id as image_file_id
         , i.stroom_43 as stroom
-        , pfv.amount as price
       from
         civicrm_event e
       inner join
