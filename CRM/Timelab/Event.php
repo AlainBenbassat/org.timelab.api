@@ -19,6 +19,7 @@ class CRM_Timelab_Event {
         , e.summary
         , e.description
         , e.event_type_id
+        , e.registration_link_text
         , ov.label as event_type
         , concat(%2, 'sites/all/files/civicrm/custom/', f.uri) as image
         , e.is_monetary
