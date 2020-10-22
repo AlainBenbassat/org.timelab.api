@@ -98,7 +98,8 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
             c.image_URL as image,
             p.bio_15 as bio,
             c.contact_type,
-            gdpr.may_be_shown_on_site__54 as may_be_shown_on_site
+            gdpr.may_be_shown_on_site__54 as may_be_shown_on_site,
+            o.ordering_value_67 as ordering_value
             $extrafields
           from
             civicrm_contact as c
@@ -110,6 +111,8 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
             civicrm_relationship as r on r.contact_id_a = c.id OR r.contact_id_b = c.id
           inner join
             civicrm_contact as cb on r.contact_id_b = cb.id OR r.contact_id_a = cb.id
+          left join
+            civicrm_value_ordering_37 as o on c.id = o.entity_id
           $extrajoins
           where
             c.is_deleted = 0
@@ -122,7 +125,7 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
           group by
             c.id
           order by
-            c.sort_name
+            IF(o.ordering_value_67 IS NULL OR o.ordering_value_67 = '', c.sort_name, o.ordering_value_67)
         ";
 
         $people = [];

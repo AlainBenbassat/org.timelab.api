@@ -28,6 +28,7 @@ function civicrm_api3_timelab_Getprojects($params, $extraWhere = '') {
             c.contact_sub_type as type,
             p.bio_15 as bio,
             s.stroom_44 as stream,
+            o.ordering_value_67 as ordering_value,
             GROUP_CONCAT(sv.label) as stream_label
           from
             civicrm_contact as c
@@ -40,6 +41,9 @@ function civicrm_api3_timelab_Getprojects($params, $extraWhere = '') {
           left join
             civicrm_option_value as sv
             on sv.option_group_id = 132 and sv.value = s.stroom_44
+          left join
+            civicrm_value_ordering_37 as o
+            on c.id = o.entity_id
           where
             c.is_deleted = 0
             and c.contact_type = 'Organization'
@@ -47,7 +51,7 @@ function civicrm_api3_timelab_Getprojects($params, $extraWhere = '') {
           group by
             c.id
           order by
-            c.sort_name
+            IF(o.ordering_value_67 IS NULL OR o.ordering_value_67 = '', c.sort_name, o.ordering_value_67)
         ";
 
         $projects = [];
