@@ -37,12 +37,21 @@ function civicrm_api3_timelab_Geteventlist($params) {
         $stromen = [];
     }
 
-    // check if to date was specified
+    // check if a limit was specified
     if (array_key_exists('limit', $params)) {
       $limit = intval($params['limit']);
+
+      // check if a page was specified
+      if (array_key_exists('page', $params)) {
+        $page = intval($params['page']);
+      }
+      else {
+        $page = 1;
+      }
     }
     else {
       $limit = null;
+      $page = 1;
     }
 
     // check if to date was specified
@@ -67,7 +76,7 @@ function civicrm_api3_timelab_Geteventlist($params) {
     }
 
     $eventHelper = new CRM_Timelab_Event();
-    $events = $eventHelper->getEventList($fromDate, $toDate, $limit, $exceptTypes, $stromen, $projects, $orderdirection);
+    $events = $eventHelper->getEventList($fromDate, $toDate, $limit, $page, $exceptTypes, $stromen, $projects, $orderdirection);
 
     return civicrm_api3_create_success($events, $params, 'Timelab', 'getEventList');
   }

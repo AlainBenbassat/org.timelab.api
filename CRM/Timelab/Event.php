@@ -179,7 +179,7 @@ class CRM_Timelab_Event {
     return $participants;
   }
 
-  public function getEventList($fromDate, $toDate, $limit = null, $exceptTypes = [], $stromen = [], $projects = [], $orderdirection = 'ASC') {
+  public function getEventList($fromDate, $toDate, $limit = null, $page = 1, $exceptTypes = [], $stromen = [], $projects = [], $orderdirection = 'ASC') {
     $sqlParams = [
       1 => [$fromDate . (strpos($fromDate,':') === false ? ' 00:00:00' : ''), 'String'],
       2 => [$toDate . (strpos($toDate,':') === false ? ' 23:59:59' : ''), 'String'],
@@ -259,7 +259,13 @@ class CRM_Timelab_Event {
         e.start_date $orderdirection
       ");
     if($limit){
-      $sql .= " limit $limit";
+      if($page > 1) {
+        $lstart = ($page-1)*$limit;
+        $sql .= " limit $lstart,$limit";
+      }
+      else {
+        $sql .= " limit $limit";
+      }
     }
 
     $events = [];

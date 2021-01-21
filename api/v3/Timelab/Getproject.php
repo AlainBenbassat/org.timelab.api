@@ -10,6 +10,13 @@ function civicrm_api3_timelab_Getproject($params) {
         if (!array_key_exists('id', $params) || !is_numeric($params['id'])) {
             throw new Exception('id is required and must be numeric');
         }
+        // check the params
+        if (!array_key_exists('group_people', $params)) {
+          $params['group_people'] = false;
+        }
+        else {
+          $params['group_people'] = boolval($params['group_people']);
+        }
 
         $sql = "
           select
@@ -17,7 +24,7 @@ function civicrm_api3_timelab_Getproject($params) {
             c.display_name,
             c.image_URL as image,
             p.bio_15 as bio,
-            group_concat(i.selector_53) as instagram_selectors 
+            group_concat(i.selector_53) as instagram_selectors
           from
             civicrm_contact as c
           left join
@@ -71,7 +78,8 @@ function civicrm_api3_timelab_Getproject($params) {
             ca.image_URL as image,
             group_concat(rt.label_b_a) as label,
             group_concat(r.description) as description,
-            ca.job_title
+            ca.job_title,
+            ca.contact_type
           from
             civicrm_relationship as r
           left join
@@ -85,7 +93,10 @@ function civicrm_api3_timelab_Getproject($params) {
             and (r.end_date IS NULL or r.end_date > NOW())
             and ca.is_deleted = 0
           GROUP BY
-            ca.id";
+            ca.id
+          ORDER BY ".
+          ($params['group_people'] ? 'ca.contact_type ASC, ' : '').
+        "label ASC, ca.sort_name ASC";
         $sqlParams = [
             1 => [$project[0]['id'], 'Integer']
         ];
@@ -93,7 +104,16 @@ function civicrm_api3_timelab_Getproject($params) {
         $people = [];
         $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
         while ($dao->fetch()) {
-            $people[] = $dao->toArray();
+          $person = $dao->toArray();
+          if($params['group_people']) {
+            if(!array_key_exists($person['contact_type'], $people)) {
+              $people[$person['contact_type']] = [];
+            }
+            $people[$person['contact_type']][] = $person;
+          }
+          else {
+            $people[] = $person;
+          }
         }
         $project[0]['people'] = $people;
 
@@ -114,17 +134,17 @@ function civicrm_api3_timelab_Getproject($params) {
             civicrm_event e
           inner join
             civicrm_option_value ov on ov.value = e.event_type_id
-          inner join 
+          inner join
             civicrm_option_group og on ov.option_group_id = og.id and og.name = 'event_type'
-          left outer join 
+          left outer join
             civicrm_value_img_9 i on i.entity_id = e.id
-          left outer join 
+          left outer join
             civicrm_file f on i.featured_image_25 = f.id
-          where 
+          where
             e.is_active = 1
           and
             e.is_public = 1
-          and 
+          and
             i.project_45 = %1
           order by
             e.start_date DESC";
@@ -155,7 +175,7 @@ function civicrm_api3_timelab_Getproject($params) {
             civicrm_value_projectdocume_28 as pd
           left join
             civicrm_file as f on f.id = pd.document_49
-          where 
+          where
             pd.entity_id = %1";
         $sqlParams = [
             1 => [$project[0]['id'], 'Integer'],
@@ -177,7 +197,7 @@ function civicrm_api3_timelab_Getproject($params) {
             civicrm_value_foto_gallery_32 as fg
           left join
             civicrm_file as f on f.id = fg.foto_52
-          where 
+          where
             fg.entity_id = %1";
       $sqlParams = [
         1 => [$project[0]['id'], 'Integer'],

@@ -9,11 +9,20 @@ function civicrm_api3_timelab_Getpatterns($params) {
     c.id,
     c.display_name,
     c.image_URL as image,
+    p.bio_15 as bio,
+    pf.vimeo_video_68 as vimeo,
+    concat(%1, 'sites/all/files/civicrm/custom/', f.uri) as image2,
     o.ordering_value_67 as ordering_value
   from
     civicrm_contact as c
   left join
     civicrm_value_ordering_37 as o on c.id = o.entity_id
+  left join
+    civicrm_value_public_5 as p on c.id = p.entity_id
+  left join
+    civicrm_value_pattern_field_38 as pf on c.id = pf.entity_id
+  left outer join
+    civicrm_file f on pf.image_file_69 = f.id
   where
     c.is_deleted = 0
     and c.contact_type = 'Organization'
