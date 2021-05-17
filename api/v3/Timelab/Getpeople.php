@@ -45,7 +45,11 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
               else {
                 $filterProjects .= ' and cb.is_deleted = 0 and cb.contact_type = \'Organization\' ';
                 if(!array_key_exists('project', $params)){
-                  $filterProjects .= ' and cb.contact_sub_type IN (\'Project\', \'Project_timelab\') ';
+                  $subTypes = ['Project', 'Project_timelab'];
+                  if(array_key_exists('include_archived', $params) && $params['include_archived'] == true) {
+                    $subTypes[] = 'Project_onhold';
+                  }
+                  $filterProjects .= ' and cb.contact_sub_type IN (\''.implode('\',\'', $subTypes).'\') ';
                 }
                 $extrajoins .= '';
               }
