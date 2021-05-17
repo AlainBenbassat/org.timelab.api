@@ -188,27 +188,46 @@ function civicrm_api3_timelab_Getproject($params) {
         }
         $project[0]['docs'] = $docs;
 
-      // get pictures
-      $sql = "
-          select
-            f.uri as image,
-            f.mime_type as mime_type
-          from
-            civicrm_value_foto_gallery_32 as fg
-          left join
-            civicrm_file as f on f.id = fg.foto_52
-          where
-            fg.entity_id = %1";
-      $sqlParams = [
-        1 => [$project[0]['id'], 'Integer'],
-      ];
+        // get pictures
+        $sql = "
+            select
+              f.uri as image,
+              f.mime_type as mime_type
+            from
+              civicrm_value_foto_gallery_32 as fg
+            left join
+              civicrm_file as f on f.id = fg.foto_52
+            where
+              fg.entity_id = %1";
+        $sqlParams = [
+          1 => [$project[0]['id'], 'Integer'],
+        ];
 
-      $pics = [];
-      $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
-      while ($dao->fetch()) {
-        $pics[] = $dao->toArray();
-      }
-      $project[0]['pictures'] = $pics;
+        $pics = [];
+        $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+        while ($dao->fetch()) {
+          $pics[] = $dao->toArray();
+        }
+        $project[0]['pictures'] = $pics;
+
+        // get video's
+        $sql = "
+            select
+              url_to_vimeo_71 as url
+            from
+              civicrm_value_video_gallery_40
+            where
+              entity_id = %1";
+        $sqlParams = [
+          1 => [$project[0]['id'], 'Integer'],
+        ];
+
+        $videos = [];
+        $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+        while ($dao->fetch()) {
+          $videos[] = $dao->toArray();
+        }
+        $project[0]['videos'] = $videos;
 
         return civicrm_api3_create_success($project, $params, 'Timelab', 'Getproject');
     }
