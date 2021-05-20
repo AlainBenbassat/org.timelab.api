@@ -213,9 +213,9 @@ function civicrm_api3_timelab_Getproject($params) {
         // get video's
         $sql = "
             select
-              url_to_vimeo_71 as url
+              url_to_vimeo_72 as url
             from
-              civicrm_value_video_gallery_40
+              civicrm_value_video_gallery_39
             where
               entity_id = %1";
         $sqlParams = [
