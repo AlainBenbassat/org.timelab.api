@@ -129,7 +129,7 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
           group by
             c.id
           order by
-            IF(o.ordering_value_67 IS NULL OR o.ordering_value_67 = '', c.sort_name, o.ordering_value_67)
+            IF(o.ordering_value_67 IS NULL OR o.ordering_value_67 = '', c.display_name, o.ordering_value_67)
         ";
 
         $people = [];
