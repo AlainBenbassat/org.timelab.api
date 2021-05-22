@@ -15,3 +15,21 @@ function timelab_cleanCivicrmUrl($url) {
   }
   return $url;
 }
+
+function timelab_getProjectTypesSQL($types = null, $tableAlias = 'civicrm_concat') {
+  if($types === null) {
+    $types = ['Project_timelab', 'Project'];
+  }
+  $typestring = '';
+  if(count($types)) {
+    foreach ($types as $k => $t) {
+      $types[$k] = addslashes(trim($t));
+      if($k != 0) {
+        $typestring .= " OR ";
+      }
+      $typestring .= $tableAlias.'.contact_sub_type LIKE "%' . $types[$k] . '%"';
+    }
+    $typestring = "AND ($typestring)";
+  }
+  return $typestring;
+}

@@ -20,7 +20,8 @@ function civicrm_api3_timelab_Getblogposts($params) {
         civicrm_file f on i.featured_image_25 = f.id
       where
         e.is_active = 1 AND
-        e.event_type_id = 23
+        e.event_type_id = 23 AND
+        e.is_public = 1
       order by
         e.start_date DESC";
 
