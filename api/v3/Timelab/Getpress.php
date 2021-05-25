@@ -31,7 +31,7 @@ function civicrm_api3_timelab_Getpress($params) {
     $events = CRM_Core_DAO::executeQuery($sql, [1 => [CRM_Utils_System::baseURL(), 'String']]);
     $events = $events->fetchAll();
 
-    return civicrm_api3_create_success($events, $params, 'Timelab', 'Getblogposts');
+    return civicrm_api3_create_success($events, $params, 'Timelab', 'Getpress');
   }
   catch (Exception $e) {
     throw new API_Exception($e->getMessage(), $e->getCode());
