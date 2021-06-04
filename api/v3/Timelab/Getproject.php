@@ -92,6 +92,7 @@ function civicrm_api3_timelab_Getproject($params) {
             (r.contact_id_a = %1 or r.contact_id_b = %1)
             and (r.end_date IS NULL or r.end_date > NOW())
             and ca.is_deleted = 0
+            and r.is_active = 1
           GROUP BY
             ca.id
           ORDER BY ".
