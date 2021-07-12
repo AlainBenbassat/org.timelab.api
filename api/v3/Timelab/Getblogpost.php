@@ -16,6 +16,7 @@ function civicrm_api3_timelab_Getblogpost($params) {
         e.id,
         e.title,
         e.start_date as `date`,
+        e.summary,
         e.description,
         concat(%2, 'sites/all/files/civicrm/custom/', f.uri) as image,
         f.id as image_file_id

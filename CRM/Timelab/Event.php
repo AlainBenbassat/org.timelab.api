@@ -152,6 +152,8 @@ class CRM_Timelab_Event {
       where
         e.id = %1
       and
+        c.is_deleted = 0
+      and
         e.is_active = 1
       and
         e.is_public = 1
