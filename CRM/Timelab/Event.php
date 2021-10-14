@@ -252,7 +252,7 @@ class CRM_Timelab_Event {
         (pfv.is_active IS NULL or pfv.is_active = 1)
       and
         ((e.end_date IS NULL and e.start_date between %1 and %2) or (e.end_date >= %1 and e.start_date <= %2)) ".
-      (count($exceptTypes) ? "and ov.label NOT IN (%4)" : "").
+      (count($exceptTypes) ? " and e.event_type_id NOT IN (%4)" : "").
       (count($stromen) ? " and i.stroom_43 IN (%5)" : "").
       (isset($sqlParams[6]) ? " and i.project_45 IN (%6)" : "").
       (isset($sqlParams[8]) ? " and c.contact_sub_type LIKE %8" : "").
