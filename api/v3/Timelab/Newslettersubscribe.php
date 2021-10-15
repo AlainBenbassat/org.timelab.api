@@ -2,25 +2,34 @@
 
 function _civicrm_api3_timelab_Newslettersubscribe_spec(&$spec) {
   $spec['email']['api.required'] = 1;
+  $spec['first_name']['api.required'] = 1;
+  $spec['last_name']['api.required'] = 1;
+  $spec['captcha']['api.required'] = 1;
 }
 
 function civicrm_api3_timelab_Newslettersubscribe($params) {
-  try {
+  try {//6LfUVw0cAAAAAOUdI7GsRdhFrrEuofMvweVlg5wg
     // check the params
     if (!array_key_exists('email', $params)) {
       throw new Exception('email is required');
       $params['email'] = strtolower(trim($params['email']));
     }
 
-    /* TODO: test this
+    // check the params
+    if (!array_key_exists('first_name', $params)) {
+      throw new Exception('first name is required');
+      $params['first_name'] = trim($params['first_name']);
+    }
+    // check the params
+    if (!array_key_exists('last_name', $params)) {
+      throw new Exception('last name is required');
+      $params['last_name'] = trim($params['last_name']);
+    }
+
     $emailValidator = \Zend\Validator\EmailAddress();
     if(!$emailValidator->isValid($params['email'])){
       throw new Exception('email is not valid');
     }
-    */
-
-    $params['first_name'] = trim($params['first_name'] ?? '');
-    $params['last_name'] = trim($params['last_name'] ?? '');
 
     $contacts = civicrm_api3('Contact', 'get', [
       'sequential' => 1,
@@ -29,25 +38,10 @@ function civicrm_api3_timelab_Newslettersubscribe($params) {
     if($contacts['is_error']){
       throw new Exception('Error when fetching contact data: '.$contacts['error_message']);
     }
-    $contact = null;
-    foreach($contacts['values'] as $possibleContact){
-      $possibleContact['first_name'] = trim($possibleContact['first_name'] ?? '');
-      $possibleContact['last_name'] = trim($possibleContact['last_name'] ?? '');
-      if(strtolower($possibleContact['first_name']) == strtolower($params['first_name'])
-      || strtolower($possibleContact['first_name']) == $params['email']){
-        if(strtolower($possibleContact['last_name']) == strtolower($params['last_name'])){
-          $contact = $possibleContact;
-          break;
-        }
-      }
-    }
-    if(!$contact) {
-      if($params['first_name'] == '') {
-        $params['first_name'] = $params['email'];
-      }
+    if($contacts['count'] == 0) {
       $result = civicrm_api3('Contact', 'create', [
         'contact_type' => "Individual",
-        'first_name' => $params['email'] ,
+        'first_name' => $params['first_name'],
         'last_name' => $params['last_name'],
       ]);
       if($result['is_error']){
@@ -64,17 +58,9 @@ function civicrm_api3_timelab_Newslettersubscribe($params) {
         }
       }
     }
-
-    return civicrm_api3('Participant', 'create', [
-      'contact_id' => $contact['id'],
-      'event_id' => $params['event_id'],
-      'custom_31' => $params['invoice_needed'] ?? null,
-      'custom_32' => $params['invoice_company'] ?? null,
-      'custom_36' => $params['invoice_vat'] ?? null,
-      'custom_33' => $params['invoice_street_address'] ?? null,
-      'custom_35' => $params['invoice_postalcode'] ?? null,
-      'custom_34' => $params['invoice_city'] ?? null
-    ]);
+    else {
+      throw new Exception('E-mailadress has already been subscribed');
+    }
   }
   catch (Exception $e) {
     throw new API_Exception($e->getMessage(), $e->getCode());
