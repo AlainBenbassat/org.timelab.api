@@ -70,6 +70,11 @@ function civicrm_api3_timelab_Getproject($params) {
         }
         $project[0]['websites'] = $websites;
 
+        $filterRelationshipType= '';
+        if(array_key_exists('people_relationship_type', $params)) {
+          $filterRelationshipType = ' and r.relationship_type_id = ' . intval($params['people_relationship_type']);
+        }
+
         // get people
         $sql = "
           select
@@ -93,6 +98,7 @@ function civicrm_api3_timelab_Getproject($params) {
             and (r.end_date IS NULL or r.end_date > NOW())
             and ca.is_deleted = 0
             and r.is_active = 1
+            $filterRelationshipType
           GROUP BY
             ca.id
           ORDER BY ".
