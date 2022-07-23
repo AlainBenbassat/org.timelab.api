@@ -10,10 +10,11 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
         $sqlParams = [];
         $extrajoins  = '';
         $extrafields = '';
-        $filterProjects = "";
+        $cbIds = '';
         if (array_key_exists('project', $params) || !array_key_exists('relationship_type', $params)) {
-            if (array_key_exists('project', $params)) {
-              $filterProjects .= ' and cb.id = ' . intval($params['project']) . ' and c.id != ' . intval($params['project']);
+            if (array_key_exists('project', $params) && $params['project'] != 'any') {
+              $cbIds = intval($params['project']) ;
+              $extraWhere .= ' and c.id != ' . intval($params['project']);
 
               if(array_key_exists('project_api_key', $params)){
                 $sql = "select id from civicrm_contact a where api_key = %1 limit 1";
@@ -43,14 +44,22 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
                 $extrajoins .= ' left join civicrm_email as e on e.contact_id = c.id  and e.email LIKE "%@timelab.org" ';
               }
               else {
-                $filterProjects .= ' and cb.is_deleted = 0 and cb.contact_type = \'Organization\' ';
-                if(!array_key_exists('project', $params)){
+                $cbIdsSql = 'SELECT id FROM civicrm_contact WHERE is_deleted = 0 and contact_type = \'Organization\' ';
+                if(!array_key_exists('project', $params) || $params['project'] == 'any'){
                   $subTypes = ['Project', 'Project_timelab'];
                   if(array_key_exists('include_archived', $params) && $params['include_archived'] == true) {
                     $subTypes[] = 'Project_onhold';
                   }
-                  $filterProjects .= ' and cb.contact_sub_type IN (\''.implode('\',\'', $subTypes).'\') ';
+                  $cbIdsSql .= ' and contact_sub_type IN (\''.implode('\',\'', $subTypes).'\') ';
                 }
+                $dao = CRM_Core_DAO::executeQuery($cbIdsSql, []);
+                $cbIds = [];
+                while ($dao->fetch()) {
+                  $arr = $dao->toArray();
+                  $cbIds[] = $arr['id'];
+                }
+                $cbIds = implode(',', $cbIds);
+
                 $extrajoins .= '';
               }
             }
@@ -91,7 +100,7 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
               $params['contact_type'][$k] = "'" . addslashes($type) . "'";
             }
 
-            $filterProjects .= ' and c.contact_type IN('.implode(',', $params['contact_type']).') ';
+            $extraWhere .= ' and c.contact_type IN('.implode(',', $params['contact_type']).') ';
           }
         }
 
@@ -110,23 +119,23 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
           left join
             civicrm_value_public_5 as p on c.id = p.entity_id
           left join
-            civicrm_value_gdpr_34 as gdpr on c.id = gdpr.entity_id
+            civicrm_value_gdpr_34 as gdpr on
+                c.id = gdpr.entity_id
+                and (c.contact_type != 'Individual' or gdpr.may_be_shown_on_site__54 IS NULL or gdpr.may_be_shown_on_site__54 != 'no')
           inner join
-            civicrm_relationship as r on r.contact_id_a = c.id OR r.contact_id_b = c.id
-          inner join
-            civicrm_contact as cb on r.contact_id_b = cb.id OR r.contact_id_a = cb.id
+            civicrm_relationship as r on
+                (r.end_date IS NULL or r.end_date > NOW())
+                and r.is_active = 1
+                and (r.contact_id_a = c.id OR r.contact_id_b = c.id)
+                and (r.contact_id_b IN ($cbIds) or r.contact_id_a IN ($cbIds))
+                $filterRelationshipType
           left join
             civicrm_value_ordering_37 as o on c.id = o.entity_id
           $extrajoins
           where
             c.is_deleted = 0
-            and (r.end_date IS NULL or r.end_date > NOW())
-            and r.is_active = 1
-            and (c.contact_type != 'Individual' or gdpr.may_be_shown_on_site__54 IS NULL or gdpr.may_be_shown_on_site__54 != 'no')
             and (c.contact_sub_type IS NULL or c.contact_sub_type NOT LIKE \"%Project%\")
             $extraWhere
-            $filterProjects
-            $filterRelationshipType
           group by
             c.id
           order by
