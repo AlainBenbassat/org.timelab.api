@@ -183,7 +183,9 @@ function civicrm_api3_timelab_Getproject($params) {
           left join
             civicrm_file as f on f.id = pd.document_49
           where
-            pd.entity_id = %1";
+            pd.entity_id = %1
+          order by
+            description ASC";
         $sqlParams = [
             1 => [$project[0]['id'], 'Integer'],
         ];
