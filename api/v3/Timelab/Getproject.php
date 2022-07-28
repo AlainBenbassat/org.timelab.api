@@ -162,6 +162,7 @@ function civicrm_api3_timelab_Getproject($params) {
           and
             i.project_45 = %1
           order by
+            e.event_type_id DESC,
             e.start_date DESC";
         $sqlParams = [
             1 => [$project[0]['id'], 'Integer'],
@@ -176,7 +177,10 @@ function civicrm_api3_timelab_Getproject($params) {
                 'id' => $dao->event_type_id,
                 'name' => $dao->event_type,
             ];
-            $events[] = $event;
+            if (!array_key_exists($dao->event_type_id, $events)) {
+              $events[$dao->event_type_id] = [];
+            }
+            $events[$dao->event_type_id][] = $event;
         }
         $project[0]['events'] = $events;
 
