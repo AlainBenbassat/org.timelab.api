@@ -24,7 +24,9 @@ function civicrm_api3_timelab_Getproject($params) {
             c.display_name,
             c.image_URL as image,
             p.bio_15 as bio,
-            group_concat(i.selector_53) as instagram_selectors
+            group_concat(i.selector_53) as instagram_selectors,
+            lv.value as stream_label_id,
+            lv.name as stream_label
           from
             civicrm_contact as c
           left join
@@ -33,6 +35,12 @@ function civicrm_api3_timelab_Getproject($params) {
           left join
             civicrm_value_instagram_fee_33 as i
             on c.id = i.entity_id
+          left join
+            civicrm_value_label_project_44 as l
+            on l.entity_id = c.id
+          left join
+            civicrm_option_value as lv
+            on lv.option_group_id = 146 and lv.value = l.labels_projects_85
           where
             c.id = %1
           group by
