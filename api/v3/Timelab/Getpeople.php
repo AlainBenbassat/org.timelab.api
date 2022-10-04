@@ -14,7 +14,7 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
         if (array_key_exists('project', $params) || !array_key_exists('relationship_type', $params)) {
             if (array_key_exists('project', $params) && $params['project'] != 'any') {
               $cbIds = intval($params['project']) ;
-              $extraWhere .= ' and c.id != ' . intval($params['project']);
+              $extraWhere .= " and c.id != $cbIds and (r.contact_id_a = $cbIds OR r.contact_id_b = $cbIds)";
 
               if(array_key_exists('project_api_key', $params)){
                 $sql = "select id from civicrm_contact a where api_key = %1 limit 1";
