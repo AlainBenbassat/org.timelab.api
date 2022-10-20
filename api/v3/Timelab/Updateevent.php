@@ -156,7 +156,7 @@ function civicrm_api3_timelab_Updateevent($params) {
         throw new API_Exception($event->_errors[0]['message']);
       } else {
         $eventHelper = new CRM_Timelab_Event();
-        $event = $eventHelper->getEventList($params['start_date'], $params['end_date'], 1, [], [], [$project], array_keys($event['values'])[0]);
+        $event = $eventHelper->getEventList($params['start_date'], $params['end_date'], null, 1, [], [], [], [$project], array_keys($event['values'])[0]);
 
         return civicrm_api3_create_success($event, $params, 'Timelab', 'getEventList');
       }

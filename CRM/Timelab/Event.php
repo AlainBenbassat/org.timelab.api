@@ -181,7 +181,7 @@ class CRM_Timelab_Event {
     return $participants;
   }
 
-  public function getEventList($fromDate, $toDate, $limit = null, $page = 1, $exceptTypes = [], $stromen = [], $projects = [], $orderdirection = 'ASC') {
+  public function getEventList($fromDate, $toDate, $limit = null, $page = 1, $onlyTypes = [], $exceptTypes = [], $stromen = [], $projects = [], $orderdirection = 'ASC') {
     $sqlParams = [
       1 => [$fromDate . (strpos($fromDate,':') === false ? ' 00:00:00' : ''), 'String'],
       2 => [$toDate . (strpos($toDate,':') === false ? ' 23:59:59' : ''), 'String'],
@@ -199,6 +199,9 @@ class CRM_Timelab_Event {
       } else {
         $sqlParams[8] = [$projects['type'], "String", CRM_Core_DAO::QUERY_FORMAT_WILDCARD];
       }
+    }
+    if(count($onlyTypes)){
+      $sqlParams[9] = [implode(',', $onlyTypes), 'CommaSeparatedIntegers'];
     }
     if($limit == 1 && is_numeric($orderdirection)){
       $sqlParams[7] = [intval($orderdirection), 'Integer'];
@@ -253,12 +256,13 @@ class CRM_Timelab_Event {
       and
         ((e.end_date IS NULL and e.start_date between %1 and %2) or (e.end_date >= %1 and e.start_date <= %2)) ".
       (count($exceptTypes) ? " and e.event_type_id NOT IN (%4)" : "").
+      (count($onlyTypes) ? " and e.event_type_id IN (%9)" : "").
       (count($stromen) ? " and i.stroom_43 IN (%5)" : "").
       (isset($sqlParams[6]) ? " and i.project_45 IN (%6)" : "").
       (isset($sqlParams[8]) ? " and c.contact_sub_type LIKE %8" : "").
       (($limit == 1 && is_numeric($orderdirection)) ? " and e.id = %7 " : '').
-      (is_numeric($orderdirection) ? '' : " order by
-        e.start_date $orderdirection
+      (is_numeric($orderdirection) ? '' :  " order by ".($orderdirection == 'DESC' ? "
+        IF(e.end_date IS NOT NULL, e.end_date, e.start_date) $orderdirection," : '')." e.start_date $orderdirection
       ");
     if($limit){
       if($page > 1) {
