@@ -53,7 +53,7 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
                   $cbIdsSql .= ' and contact_sub_type IN (\''.implode('\',\'', $subTypes).'\') ';
                 }
                 $dao = CRM_Core_DAO::executeQuery($cbIdsSql, []);
-                $cbIds = [];
+                $cbIds = [2402];
                 while ($dao->fetch()) {
                   $arr = $dao->toArray();
                   $cbIds[] = $arr['id'];
@@ -65,15 +65,24 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
             }
         }
 
+        $exclude_relationship_type = [];
+        if(array_key_exists('exclude_relationship_type', $params)) {
+          if(!array_key_exists('IN', $params['exclude_relationship_type'])) {
+            $exclude_relationship_type = [$params['exclude_relationship_type']];
+          }
+          else {
+            $exclude_relationship_type = $params['exclude_relationship_type']['IN'];
+          }
+        }
+
         $filterRelationshipType = "";
         if (array_key_exists('relationship_type', $params)) {
           if(!array_key_exists('IN', $params['relationship_type'])) {
-            $filterRelationshipType = ' and r.relationship_type_id = ' . intval($params['relationship_type']);
+            $params['relationship_type'] = ['IN' => [intval($params['relationship_type'])]];
           }
-          else{
-            $sqlParams[1] = [implode(',', $params['relationship_type']['IN']), 'CommaSeparatedIntegers'];
-            $filterRelationshipType = ' and r.relationship_type_id IN (%1) ';
-          }
+          $in = array_merge($params['relationship_type']['IN'], $exclude_relationship_type);
+          $sqlParams[1] = [implode(',', $in), 'CommaSeparatedIntegers'];
+          $filterRelationshipType = ' and r.relationship_type_id IN (%1) ';
           $extrafields .= ', GROUP_CONCAT(DISTINCT(r.relationship_type_id)) AS relationship_type
                            , GROUP_CONCAT(DISTINCT(r.description)) AS project_roles';
         }
@@ -144,13 +153,24 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
 
         $people = [];
 
+        //var_dump($sql, $sqlParams); die();
         $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
         while ($dao->fetch()) {
             $arr = $dao->toArray();
             if(!empty($arr['image'])) {
               $arr['image'] = timelab_cleanCivicrmUrl($arr['image']);
             }
-            $people[] = $arr;
+            $relationship_types = explode(',', $arr['relationship_type']);
+            $exclude = false;
+            foreach($exclude_relationship_type as $ert) {
+              if(in_array($ert, $relationship_types)) {
+                $exclude = true;
+                break;
+              }
+            }
+            if(!$exclude) {
+              $people[] = $arr;
+            }
         }
 
         if(array_key_exists('project_api_key', $params)){
