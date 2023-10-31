@@ -26,7 +26,7 @@ function civicrm_api3_timelab_Getproject($params) {
             p.bio_15 as bio,
             group_concat(i.selector_53) as instagram_selectors,
             lv.value as stream_label_id,
-            lv.name as stream_label
+            lv.label as stream_label
           from
             civicrm_contact as c
           left join
