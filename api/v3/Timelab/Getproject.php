@@ -219,7 +219,8 @@ function civicrm_api3_timelab_Getproject($params) {
             left join
               civicrm_file as f on f.id = fg.foto_52
             where
-              fg.entity_id = %1";
+              fg.entity_id = %1
+            ORDER BY f.upload_date DESC";
         $sqlParams = [
           1 => [$project[0]['id'], 'Integer'],
         ];
