@@ -38,7 +38,7 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
                            , GROUP_CONCAT(DISTINCT(rt.label_b_a)) as label ';
               }
             }
-            if(!$params['project_api_key']) {
+            if(!array_key_exists('project_api_key', $params) || !$params['project_api_key']) {
               if ($params['project'] == 2402) { // timelab
                 $extrafields .= ', GROUP_CONCAT(DISTINCT(e.email)) as email';
                 $extrajoins .= ' left join civicrm_email as e on e.contact_id = c.id  and e.email LIKE "%@timelab.org" ';
@@ -67,8 +67,11 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
 
         $exclude_relationship_type = [];
         if(array_key_exists('exclude_relationship_type', $params)) {
-          if(!array_key_exists('IN', $params['exclude_relationship_type'])) {
+          if(!is_array($params['exclude_relationship_type'])) {
             $exclude_relationship_type = [$params['exclude_relationship_type']];
+          }
+          else if(!array_key_exists('IN', $params['exclude_relationship_type'])) {
+            $exclude_relationship_type = $params['exclude_relationship_type'];
           }
           else {
             $exclude_relationship_type = $params['exclude_relationship_type']['IN'];
@@ -77,7 +80,7 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
 
         $filterRelationshipType = "";
         if (array_key_exists('relationship_type', $params)) {
-          if(!array_key_exists('IN', $params['relationship_type'])) {
+          if(!is_array($params['relationship_type'])) {
             $params['relationship_type'] = ['IN' => [intval($params['relationship_type'])]];
           }
           $in = array_merge($params['relationship_type']['IN'], $exclude_relationship_type);
@@ -160,7 +163,12 @@ function civicrm_api3_timelab_Getpeople($params, $extraWhere = '') {
             if(!empty($arr['image'])) {
               $arr['image'] = timelab_cleanCivicrmUrl($arr['image']);
             }
-            $relationship_types = explode(',', $arr['relationship_type']);
+            if($arr['relationship_type'] !== null && strlen($arr['relationship_type']) > 0) {
+              $relationship_types = explode(',', $arr['relationship_type']);
+            }
+            else {
+              $relationship_types = [];
+            }
             $exclude = false;
             foreach($exclude_relationship_type as $ert) {
               if(in_array($ert, $relationship_types)) {

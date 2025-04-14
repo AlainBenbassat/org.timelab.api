@@ -71,6 +71,7 @@ function civicrm_api3_timelab_Getproject($params) {
 
         $websiteTypes = CRM_Core_PseudoConstant::get('CRM_Core_DAO_Website', 'website_type_id');
         $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+        $websites = [];
         while ($dao->fetch()) {
           $w = $dao->toArray();
           $w['website_type'] = $websiteTypes[$w['website_type_id']];

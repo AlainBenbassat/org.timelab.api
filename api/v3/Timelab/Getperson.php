@@ -62,6 +62,7 @@ function civicrm_api3_timelab_Getperson($params) {
 
           $websiteTypes = CRM_Core_PseudoConstant::get('CRM_Core_DAO_Website', 'website_type_id');
           $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+          $websites = [];
           while ($dao->fetch()) {
             $w = $dao->toArray();
             $w['website_type'] = $websiteTypes[$w['website_type_id']];
@@ -123,13 +124,13 @@ function civicrm_api3_timelab_Getperson($params) {
             civicrm_event as e on e.id = p.event_id
           inner join
             civicrm_option_value ov on ov.value = e.event_type_id
-          inner join 
+          inner join
             civicrm_option_group og on ov.option_group_id = og.id and og.name = 'event_type'
-          left outer join 
+          left outer join
             civicrm_value_img_9 i on i.entity_id = e.id
-          left outer join 
+          left outer join
             civicrm_file f on i.featured_image_25 = f.id
-          where 
+          where
             e.is_active = 1
           and
             e.is_public = 1
